@@ -1,112 +1,201 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Siksa TV Pro - Vivid Colors</title>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.ui.min.js"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/controls.min.css" rel="stylesheet">
+
     <style>
+
         body, html { margin: 0; padding: 0; background: #000; width: 100%; height: 100%; overflow: hidden; }
+
         .shaka-video-container { width: 100%; height: 100%; }
 
+
+
         /* --- محرك معالجة الألوان (هنا السحر) --- */
+
         video { 
+
             width: 100%; 
+
             height: 100%; 
+
             object-fit: contain;
+
             /* زيادة التباين والتشبع والحدة لتحاكي جودة الهاتف */
+
             filter: contrast(1.1) saturate(1.2) brightness(1.05);
+
             /* تحسين جودة الحواف (الحدة) */
+
             image-rendering: -webkit-optimize-contrast;
+
             image-rendering: crisp-edges;
-          
+
         }
+
+
 
         /* تنسيق خاص لدائرة التحميل */
+
         .shaka-spinner-container {
+
             width: 100% !important; height: 100% !important;
+
             display: flex; justify-content: center; align-items: center;
+
         }
+
         .shaka-spinner {
+
             width: 75px !important; height: 75px !important;
+
             border-width: 6px !important;
+
             border-top-color: #ff6b35 !important;
+
         }
+
         
+
         /* جعل شريط التحكم مريح للعين في التلفاز */
+
         .shaka-bottom-controls { direction: ltr; padding-bottom: 20px; }
+
     </style>
+
 </head>
+
 <body>
 
+
+
     <div data-shaka-player-container class="shaka-video-container">
+
         <video id="dash-video" data-shaka-player autoplay crossorigin="anonymous" playsinline></video>
+
     </div>
 
+
+
     <script>
+
         const channelList = {
-            "shahids1": {
+
+            "sps1": {
+
                 url: "https://sps1.starzplayarabia.com/out/v1/eee188845e9543699fd24e5a9890c6e2/index.mpd",
+
                 kid: "b253c726c24c7c94a3ddf9b1907e2c76",
-                key: "097963d6ad73c3d712a104981de0ed42"
+
+                key: "dd51609092fff15e68b91debf5d591f9"
+
             },
-             "shahids2":{
-            url: "https://shahid-sports-2-enc.edgenextcdn.net/out/v1/589aa6b16ce942388695b5b214f4ae93/index.mpd",
-                kid: "50a7f3afc00a40b38face4db639d0e4c",
-                key: "ad7000691326064706281a700b7d6714"
-            }
 
-},
-             "shahids3":{
-            url: "https://shahid-sports-3-enc.edgenextcdn.net/out/v1/2658c96bbfa54f339e357fe36361587e/index.mpd",
-                kid: "2b6f6b340aa8467785e4e82f9320fb5a",
-                key: "8889701d704078c4d910ed1409413d9b"
-            }
+            "sps2": {
 
+                url: "https://sps2.starzplayarabia.com/out/v1/15e7d1ffb99746dda03f71dbbbc3c08b/index.mpd",
 
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
 
             
+
+            }
+
         };
 
+
+
         async function initPlayer() {
+
             const video = document.getElementById('dash-video');
+
             const ui = video['ui'];
+
             const controls = ui.getControls();
+
             const player = controls.getPlayer();
 
+
+
             const params = new URLSearchParams(window.location.search);
+
             const channelId = params.get('id') || "sps1";
+
             const channel = channelList[channelId];
+
+
 
             if (!channel) return;
 
+
+
             // فلتر تخطي حماية السيرفر
+
             player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+
                 request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
             });
+
+
 
             const drmConfig = {};
+
             drmConfig[channel.kid] = channel.key;
 
+
+
             player.configure({
+
                 drm: { clearKeys: drmConfig },
+
                 abr: { enabled: true, switchInterval: 1 },
+
                 streaming: {
+
                     bufferingGoal: 45, // زيادة التخزين المؤقت لثبات الجودة الناقية
+
                     rebufferingGoal: 2,
+
                     lowLatencyEnabled: true
+
                 }
+
             });
 
+
+
             try {
+
                 await player.load(channel.url);
+
             } catch (e) { console.error('Load Error:', e); }
+
         }
 
+
+
         document.addEventListener('shaka-ui-loaded', initPlayer);
+
     </script>
+
 </body>
+
 </html>
+
+
 
 
