@@ -1,50 +1,94 @@
-
 <!DOCTYPE html>
-<html lang="ar">
+
+<html lang="ar" dir="rtl">
+
 <head>
+
     <meta charset="UTF-8">
-    <title>Siksa TV</title>
-    <meta name="referrer" content="no-referrer" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
-    <script src="//ssl.p.jwpcdn.com/player/v/8.26.0/jwplayer.js"></script>
-    <script>jwplayer.key = "XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo";</script>
-    
-    <link rel="stylesheet" href="https://akomov.com/todapi/jw_ako.css">
+
+    <title>Siksa TV Pro - Vivid Colors</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.ui.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/controls.min.css" rel="stylesheet">
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: black; overflow: hidden; }
-        #jwplayerDiv { width: 100% !important; height: 100% !important; }
-        /* التأكد من أن الفيديو يملأ الشاشة */
-        #jwplayerDiv video { object-fit: fill !important; }
+
+        body, html { margin: 0; padding: 0; background: #000; width: 100%; height: 100%; overflow: hidden; }
+
+        .shaka-video-container { width: 100%; height: 100%; }
+
+
+
+        /* --- محرك معالجة الألوان (هنا السحر) --- */
+
+        video { 
+
+            width: 100%; 
+
+            height: 100%; 
+
+            object-fit: contain;
+
+            /* زيادة التباين والتشبع والحدة لتحاكي جودة الهاتف */
+
+            filter: contrast(1.1) saturate(1.2) brightness(1.05);
+
+            /* تحسين جودة الحواف (الحدة) */
+
+            image-rendering: -webkit-optimize-contrast;
+
+            image-rendering: crisp-edges;
+
+        }
+
+
+
+        /* تنسيق خاص لدائرة التحميل */
+
+        .shaka-spinner-container {
+
+            width: 100% !important; height: 100% !important;
+
+            display: flex; justify-content: center; align-items: center;
+
+        }
+
+        .shaka-spinner {
+
+            width: 75px !important; height: 75px !important;
+
+            border-width: 6px !important;
+
+            border-top-color: #ff6b35 !important;
+
+        }
+
+        
+
+        /* جعل شريط التحكم مريح للعين في التلفاز */
+
+        .shaka-bottom-controls { direction: ltr; padding-bottom: 20px; }
+
     </style>
+
 </head>
+
 <body>
 
-    <div id="jwplayerDiv"></div>
+
+
+    <div data-shaka-player-container class="shaka-video-container">
+
+        <video id="dash-video" data-shaka-player autoplay crossorigin="anonymous" playsinline></video>
+
+    </div>
+
+
 
     <script>
-        // تزوير الهوية (User-Agent)
-        (function() {
-            var originalFetch = window.fetch;
-            var originalXHR = window.XMLHttpRequest;
-            var customUA = "Mozilla/5.0 (Smart-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 TV Safari/537.36";
-            window.fetch = function(url, options) {
-                options = options || {};
-                options.headers = options.headers || {};
-                options.headers['User-Agent'] = customUA;
-                return originalFetch.call(this, url, options);
-            };
-            var XHROpen = originalXHR.prototype.open;
-            originalXHR.prototype.open = function(method, url) {
-                XHROpen.apply(this, arguments);
-                this.setRequestHeader('User-Agent', customUA);
-            };
-        })();
-
-        // أيقونة التمدد
-        const expandSvg = `<svg fill="#ffffff" version="1.1" id="expand_icon" xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 100 100"><g><path d="M22.661,20.5H36c1.104,0,2-0.896,2-2s-0.896-2-2-2H19c-1.104,0-2.5,1.276-2.5,2.381v17c0,1.104,0.896,2,2,2s2-0.896,2-2V24.876l16.042,15.791c0.391,0.391,1.027,0.586,1.539,0.586s1.086-0.195,1.477-0.586c0.781-0.781,0.812-2.237,0.031-3.019L22.661,20.5z"/><path d="M83,16.5H66c-1.104,0-2,0.896-2,2s0.896,2,2,2h12.605L61.647,37.648c-0.781,0.781-0.781,2.142,0,2.923c0.39,0.391,0.902,0.633,1.414,0.633s0.774-0.171,1.164-0.562l16.274-16.5v11.738c0,1.104,0.896,2,2,2s2-0.896,2-2v-17C84.5,17.776,84.104,16.5,83,16.5z"/><path d="M36.542,60.962L20.5,76.754V65.881c0-1.104-0.896-2-2-2s-2,0.896-2,2v17c0,1.104,1.396,1.619,2.5,1.619h17c1.104,0,2-0.896,2-2s-0.896-2-2-2H22.529L39.62,63.6c0.781-0.781,0.656-1.951-0.125-2.732C38.715,60.086,37.322,60.181,36.542,60.962z"/><path d="M82.5,63.881c-1.104,0-2,0.896-2,2v11.606L64.226,60.962c-0.78-0.781-1.923-0.781-2.703,0c-0.781,0.781-0.719,1.856,0.062,2.638l17.152,16.9H66c-1.104,0-2,0.896-2,2s0.896,2,2,2h17c1.104,0,1.5-0.515,1.5-1.619v-17C84.5,64.776,83.604,63.881,82.5,63.881z"/></g></svg>`;
 
         const channelList = {
             "BEIN2": {
@@ -154,51 +198,83 @@
             }
         };
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const getID = urlParams.get('id') || "SSC1";
-        let isExpanded = true;
+        async function initPlayer() {
 
-        const player = jwplayer("jwplayerDiv").setup({
-            file: channelList[getID]?.url || channelList["SSC1"].url,
-            width: "100%",
-            height: "100%",
-            autostart: true,
-            stretching: "fill",
-            drm: { 
-                clearkey: { 
-                    keyId: channelList[getID]?.k1 || channelList["SSC1"].k1, 
-                    key: channelList[getID]?.k2 || channelList["SSC1"].k2 
-                } 
-            }
-        });
+            const video = document.getElementById('dash-video');
 
-        player.on('ready', function() {
-            player.addButton(expandSvg, 'تمدد الفيديو', function() {
-                isExpanded = !isExpanded;
-                const video = document.querySelector("#jwplayerDiv video");
-                if (video) video.style.objectFit = isExpanded ? 'fill' : 'contain';
-            }, 'expandButton');
-        });
+            const ui = video['ui'];
 
-        // اختيار الصوت العربي تلقائياً
-        player.on('audioTracks', function() {
-            const tracks = player.getAudioTracks();
-            tracks.forEach((track, index) => {
-                if (track.label.toLowerCase().includes("ara") || track.label.includes("عربي")) {
-                    player.setCurrentAudioTrack(index);
-                }
+            const controls = ui.getControls();
+
+            const player = controls.getPlayer();
+
+
+
+            const params = new URLSearchParams(window.location.search);
+
+            const channelId = params.get('id') || "sps1";
+
+            const channel = channelList[channelId];
+
+
+
+            if (!channel) return;
+
+
+
+            // فلتر تخطي حماية السيرفر
+
+            player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+
+                request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
             });
-        });
 
-        // الحل النهائي لمشكلة الصوت في الخلفية: إيقاف المشغل تماماً عند الخروج أو إخفاء الصفحة
-        window.addEventListener("beforeunload", function() { player.remove(); });
-        document.addEventListener("visibilitychange", function() {
-            if (document.hidden) { 
-                player.pause(); 
-                window.location.reload(); // إعادة تحميل لضمان قطع البث تماماً
-            }
-        });
+
+
+            const drmConfig = {};
+
+            drmConfig[channel.kid] = channel.key;
+
+
+
+            player.configure({
+
+                drm: { clearKeys: drmConfig },
+
+                abr: { enabled: true, switchInterval: 1 },
+
+                streaming: {
+
+                    bufferingGoal: 45, // زيادة التخزين المؤقت لثبات الجودة الناقية
+
+                    rebufferingGoal: 2,
+
+                    lowLatencyEnabled: true
+
+                }
+
+            });
+
+
+
+            try {
+
+                await player.load(channel.url);
+
+            } catch (e) { console.error('Load Error:', e); }
+
+        }
+
+
+
+        document.addEventListener('shaka-ui-loaded', initPlayer);
 
     </script>
+
 </body>
+
 </html>
+
+
+
