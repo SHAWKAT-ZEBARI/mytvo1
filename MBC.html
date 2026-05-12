@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Siksa TV Pro - Vivid Colors</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.ui.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/controls.min.css" rel="stylesheet">
+
+    <style>
+
+        body, html { margin: 0; padding: 0; background: #000; width: 100%; height: 100%; overflow: hidden; }
+
+        .shaka-video-container { width: 100%; height: 100%; }
+
+
+
+        /* --- محرك معالجة الألوان (هنا السحر) --- */
+
+        video { 
+
+            width: 100%; 
+
+            height: 100%; 
+
+            object-fit: contain;
+
+            /* زيادة التباين والتشبع والحدة لتحاكي جودة الهاتف */
+
+            filter: contrast(1.1) saturate(1.2) brightness(1.05);
+
+            /* تحسين جودة الحواف (الحدة) */
+
+            image-rendering: -webkit-optimize-contrast;
+
+            image-rendering: crisp-edges;
+
+        }
+
+
+
+        /* تنسيق خاص لدائرة التحميل */
+
+        .shaka-spinner-container {
+
+            width: 100% !important; height: 100% !important;
+
+            display: flex; justify-content: center; align-items: center;
+
+        }
+
+        .shaka-spinner {
+
+            width: 75px !important; height: 75px !important;
+
+            border-width: 6px !important;
+
+            border-top-color: #ff6b35 !important;
+
+        }
+
+        
+
+        /* جعل شريط التحكم مريح للعين في التلفاز */
+
+        .shaka-bottom-controls { direction: ltr; padding-bottom: 20px; }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+    <div data-shaka-player-container class="shaka-video-container">
+
+        <video id="dash-video" data-shaka-player autoplay crossorigin="anonymous" playsinline></video>
+
+    </div>
+
+
+
+    <script>
+
+        const channelList = {
+
+            "mbciraq": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-iraq/e38c44b1b43474e1c39cb5b90203691e/index.m3u8",
+
+                kid: "b253c726c24c7c94a3ddf9b1907e2c76",
+
+                key: "dd51609092fff15e68b91debf5d591f9"
+
+
+                            },
+
+            "mbc1": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-1/15cf99af5de54063fdabfefe66adc075/index.m3u8",
+
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
+                
+                
+                              },
+
+            "mbc2": {
+
+                url: "https://sps2.starzplayarabia.com/out/v1/15e7d1ffb99746dda03f71dbbbc3c08b/index.mpd",
+
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
+                
+                
+                              },
+
+            "mbc3": {
+
+                url: "https://sps2.starzplayarabia.com/out/v1/15e7d1ffb99746dda03f71dbbbc3c08b/index.mpd",
+
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
+                
+                                          },
+
+            "mbc4": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-4/24f134f1cd63db9346439e96b86ca6ed/index.m3u8",
+
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
+                
+                
+                
+                                          },
+
+            "mbc5": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8",
+
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
+                
+         
+            
+                          },
+
+            "mbc-action": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-action/8ea6ca1108d03e03da5e61372354f5c8/index.mpd",
+
+                kid: "e3ce77324a3d4fa2a913b26cc1976052",
+
+                key: "17774f82a3b9e33ea7a149596acbb20f"
+
+
+
+
+
+                                    },
+
+            "mbc-drama": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-drama/2c28a458e2f3253e678b07ac7d13fe71/index.m3u8",
+
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
+                
+         
+            
+                          },
+
+            "mbc-drama-plus": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-plus-drama/e37251ec2aac8f6c98f75cd0fa37cd28/index.m3u8",
+
+                kid: "e3ce77324a3d4fa2a913b26cc1976052",
+
+                key: "17774f82a3b9e33ea7a149596acbb20f"
+
+
+
+                                    },
+
+            "mbc-max": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8",
+
+                kid: "ee861edcd99093153a763a94b14c2c5a",
+
+                key: "ab3991f6a7729ba1ea4bcdba0c1ae6c0"
+                
+         
+            
+                          },
+
+            "mbc-action": {
+
+                url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-action/8ea6ca1108d03e03da5e61372354f5c8/index.mpd",
+
+                kid: "e3ce77324a3d4fa2a913b26cc1976052",
+
+                key: "17774f82a3b9e33ea7a149596acbb20f"
+
+
+
+
+
+
+            }
+
+        };
+
+
+
+        async function initPlayer() {
+
+            const video = document.getElementById('dash-video');
+
+            const ui = video['ui'];
+
+            const controls = ui.getControls();
+
+            const player = controls.getPlayer();
+
+
+
+            const params = new URLSearchParams(window.location.search);
+
+            const channelId = params.get('id') || "sps1";
+
+            const channel = channelList[channelId];
+
+
+
+            if (!channel) return;
+
+
+
+            // فلتر تخطي حماية السيرفر
+
+            player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+
+                request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36';
+
+            });
+
+
+
+            const drmConfig = {};
+
+            drmConfig[channel.kid] = channel.key;
+
+
+
+            player.configure({
+
+                drm: { clearKeys: drmConfig },
+
+                abr: { enabled: true, switchInterval: 1 },
+
+                streaming: {
+
+                    bufferingGoal: 45, // زيادة التخزين المؤقت لثبات الجودة الناقية
+
+                    rebufferingGoal: 2,
+
+                    lowLatencyEnabled: true
+
+                }
+
+            });
+
+
+
+            try {
+
+                await player.load(channel.url);
+
+            } catch (e) { console.error('Load Error:', e); }
+
+        }
+
+
+
+        document.addEventListener('shaka-ui-loaded', initPlayer);
+
+    </script>
+
+</body>
+
+</html>
+
+
+
