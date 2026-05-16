@@ -1,100 +1,45 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional IPTV Player</title>
-
-    <!-- Video.js CSS -->
+    <title>مشغل Video.js M3U8</title>
+    
+    <!-- ستايل ومكتبة Video.js -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
-    <!-- Quality Selector Plugin CSS -->
-    <link href="https://unpkg.com/@silvermine/videojs-quality-selector/dist/css/quality-selector.css" rel="stylesheet">
-
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    
     <style>
-        body { background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .video-container { width: 90%; max-width: 900px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        /* تخصيص شكل المشغل */
-        .video-js { width: 100%; border-radius: 8px; overflow: hidden; }
-        .vjs-big-play-centered .vjs-big-play-button { 
-            line-height: 2em; height: 2em; width: 2em; border-radius: 50%; 
-            background-color: rgba(0, 123, 255, 0.7); border: none;
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .video-js {
+            width: 800px;
+            max-width: 95%;
+            height: 450px;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
-<div class="video-container">
-    <video id="my-player" class="video-js vjs-big-play-centered vjs-fluid" controls preload="auto" poster="https://via.placeholder.com/900x500?text=Waiting+for+Stream">
-    <!-- ضع رابط الـ m3u8 هنا -->
+    <video
+        id="my-video"
+        class="video-js vjs-default-skin vjs-big-play-centered"
+        controls
+        preload="auto"
+        autoplay
+        muted
+        data-setup='{}'>
+        <!-- ضع رابط الـ m3u8 في الـ src أدناه -->
         <source src="http://45.143.222.113:8008/sunshine/WKEIXG8Wtg7nUb5IRePYAQax97lF888LCgD9WihQ7feT0SSzwqpUdG5tIzat-yhuHwYCBk2G98ymJpW6yOs_Mwaq5W-wGXpUkzH6l7yJLnsLr0NHl91nhzW-mVnkVtUV6K0NKLaGEwT0ATrHX0Emfx83phICsQhIf5JItd74Q1bc4brxie_45cSkNjLwnX9RdfIyw7jvockGOBE7SuU8Wg/hls/index.m3u8" type="application/x-mpegURL">
-        <p class="vjs-no-js">
-            للمشاهدة، يرجى تفعيل JavaScript وتحديث المتصفح.
-        </p>
     </video>
-</div>
-
-<!-- Scripts -->
-<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
-<!-- Quality Selector Plugin JS -->
-<script src="https://unpkg.com/@silvermine/videojs-quality-selector/dist/js/quality-selector.min.js"></script>
-
-<script>
-    // تهيئة المشغل
-    var player = videojs('my-player', {
-        autoplay: false,
-        muted: false,
-        fluid: true,
-        controlBar: {
-            children: [
-                'playToggle',
-                'volumePanel',
-                'currentTimeDisplay',
-                'timeDivider',
-                'durationDisplay',
-                'progressControl',
-                'liveDisplay', // مهم لروابط البث المباشر
-                'remainingTimeDisplay',
-                'customControlSpacer',
-                'playbackRateMenuButton',
-                'chaptersButton',
-                'descriptionsButton',
-                'subsCapsButton',
-                'audioTrackButton',
-                'fullscreenToggle'
-            ]
-        }
-    });
-
-    // إضافة زر اختيار الجودة
-    player.ready(function() {
-        player.controlBar.addChild('QualitySelector');
-        
-        // --- قسم التعامل مع الـ Headers والـ User-Agent ---
-        // ملاحظة: المتصفحات تمنع تعديل الـ User-Agent الحقيقي برمجياً لأسباب أمنية.
-        // ولكن يمكنك إرسال Headers مخصصة إذا كان السيرفر يدعمها.
-        
-        const vhs = player.tech().vhs;
-        if (vhs) {
-            vhs.xhr.beforeRequest = function(options) {
-                options.headers = options.headers || {};
-                
-                // إضافة Header مخصص (مثال للـ Token)
-                options.headers['Authorization'] = 'Bearer YOUR_TOKEN_HERE';
-                
-                // إذا كان السيرفر يقرأ User-Agent مخصص من Header مختلف:
-                options.headers['X-Custom-Agent'] = 'IPTV-Player-V1';
-                
-                return options;
-            };
-        }
-    });
-
-    // معالجة الأخطاء
-    player.on('error', function() {
-        console.error('حدث خطأ في تحميل البث. تأكد من الرابط أو إعدادات CORS.');
-    });
-</script>
 
 </body>
 </html>
