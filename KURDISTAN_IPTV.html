@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#07110d">
+<meta name="description" content="KURDISTAN IPTV - Kurdish, Arabic and International Live TV">
+
+<title>KURDISTAN IPTV</title>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.16"></script>
+
+<style>
+:root{
+  --bg:#050907;
+  --bg2:#0a120e;
+  --card:#101914;
+  --card2:#142019;
+  --green:#19d47b;
+  --green2:#0e9f59;
+  --text:#f4fff9;
+  --muted:#8da297;
+  --danger:#ff4d67;
+  --border:rgba(255,255,255,.08);
+  --shadow:0 15px 45px rgba(0,0,0,.35);
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  background:
+    radial-gradient(circle at 10% 0%,rgba(25,212,123,.10),transparent 30%),
+    radial-gradient(circle at 90% 10%,rgba(0,180,255,.07),transparent 25%),
+    var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+  min-height:100vh;
+}
+
+button,input{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  backdrop-filter:blur(18px);
+  background:rgba(5,9,7,.88);
+  border-bottom:1px solid var(--border);
+}
+
+.header-inner{
+  max-width:1500px;
+  margin:auto;
+  min-height:74px;
+  padding:12px 18px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  white-space:nowrap;
+}
+
+.logo-icon{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--green),#087b46);
+  box-shadow:0 0 30px rgba(25,212,123,.22);
+  font-size:21px;
+}
+
+.logo strong{
+  font-size:20px;
+  letter-spacing:.4px;
+}
+
+.logo span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-top:2px;
+}
+
+.search{
+  flex:1;
+  position:relative;
+}
+
+.search input{
+  width:100%;
+  background:#0d1511;
+  border:1px solid var(--border);
+  color:white;
+  outline:none;
+  border-radius:14px;
+  padding:13px 16px 13px 43px;
+  transition:.2s;
+}
+
+.search input:focus{
+  border-color:rgba(25,212,123,.5);
+  box-shadow:0 0 0 3px rgba(25,212,123,.08);
+}
+
+.search-icon{
+  position:absolute;
+  left:15px;
+  top:12px;
+  color:var(--muted);
+}
+
+.header-btn{
+  border:1px solid var(--border);
+  background:#101914;
+  color:white;
+  padding:12px 15px;
+  border-radius:12px;
+  transition:.2s;
+}
+
+.header-btn:hover{
+  border-color:var(--green);
+  color:var(--green);
+}
+
+.main{
+  max-width:1500px;
+  margin:auto;
+  padding:22px 18px 50px;
+}
+
+.player-section{
+  display:grid;
+  grid-template-columns:minmax(0,2.2fr) minmax(280px,.8fr);
+  gap:18px;
+  margin-bottom:22px;
+}
+
+.player-box{
+  position:relative;
+  overflow:hidden;
+  background:#000;
+  border:1px solid var(--border);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  aspect-ratio:16/9;
+}
+
+video{
+  width:100%;
+  height:100%;
+  display:block;
+  background:#000;
+  object-fit:contain;
+}
+
+.player-overlay{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  padding:18px;
+  background:linear-gradient(transparent 65%,rgba(0,0,0,.7));
+}
+
+.live-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  background:rgba(255,0,40,.85);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:11px;
+  font-weight:bold;
+}
+
+.live-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:white;
+  box-shadow:0 0 8px white;
+}
+
+.player-info{
+  background:linear-gradient(180deg,#0c1510,#09100d);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:22px;
+  box-shadow:var(--shadow);
+  min-height:100%;
+}
+
+.player-info h1{
+  font-size:24px;
+  margin-bottom:8px;
+}
+
+.player-info .meta{
+  color:var(--muted);
+  margin-bottom:20px;
+}
+
+.status{
+  padding:13px;
+  background:#0c1510;
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin-bottom:15px;
+  font-size:13px;
+}
+
+.status.ok{
+  color:#67f5ae;
+}
+
+.status.error{
+  color:#ff7184;
+}
+
+.control-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+}
+
+.control-btn{
+  border:1px solid var(--border);
+  background:#131e17;
+  color:white;
+  padding:10px 13px;
+  border-radius:10px;
+}
+
+.control-btn:hover{
+  border-color:var(--green);
+  color:var(--green);
+}
+
+.categories{
+  display:flex;
+  gap:8px;
+  overflow:auto;
+  padding:2px 0 17px;
+  scrollbar-width:none;
+}
+
+.categories::-webkit-scrollbar{
+  display:none;
+}
+
+.cat{
+  flex:0 0 auto;
+  border:1px solid var(--border);
+  background:#0d1511;
+  color:#aebeb5;
+  border-radius:999px;
+  padding:9px 15px;
+}
+
+.cat.active,
+.cat:hover{
+  background:var(--green);
+  color:#03150c;
+  border-color:var(--green);
+  font-weight:bold;
+}
+
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+  gap:15px;
+}
+
+.toolbar h2{
+  font-size:20px;
+}
+
+.counter{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.channels{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:13px;
+}
+
+.channel{
+  position:relative;
+  overflow:hidden;
+  min-height:105px;
+  padding:16px;
+  border-radius:16px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.01)),
+    var(--card);
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.channel:hover{
+  transform:translateY(-3px);
+  border-color:rgba(25,212,123,.45);
+  box-shadow:0 10px 35px rgba(0,0,0,.25);
+}
+
+.channel.selected{
+  border-color:var(--green);
+  box-shadow:0 0 0 1px rgba(25,212,123,.18);
+}
+
+.channel-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.channel-logo{
+  width:43px;
+  height:43px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:linear-gradient(135deg,#163426,#0d2017);
+  color:var(--green);
+  font-weight:bold;
+  font-size:15px;
+}
+
+.favorite{
+  width:31px;
+  height:31px;
+  border:1px solid var(--border);
+  background:#0b120e;
+  color:#819187;
+  border-radius:9px;
+}
+
+.favorite.active{
+  color:#ffd34d;
+}
+
+.channel-name{
+  font-size:14px;
+  font-weight:bold;
+  line-height:1.35;
+  padding-right:5px;
+}
+
+.channel-group{
+  color:var(--muted);
+  font-size:10px;
+  margin-top:6px;
+}
+
+.type-badge{
+  position:absolute;
+  top:10px;
+  right:45px;
+  font-size:8px;
+  color:#6eeaa7;
+  opacity:.75;
+}
+
+.empty{
+  display:none;
+  text-align:center;
+  padding:60px 20px;
+  color:var(--muted);
+}
+
+.footer{
+  text-align:center;
+  color:#66766d;
+  font-size:12px;
+  padding:35px 10px;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:22px;
+  transform:translateX(-50%) translateY(20px);
+  opacity:0;
+  pointer-events:none;
+  background:#122018;
+  border:1px solid rgba(25,212,123,.3);
+  color:#dffff0;
+  padding:12px 17px;
+  border-radius:12px;
+  z-index:999;
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+@media(max-width:1150px){
+  .channels{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}
+
+@media(max-width:900px){
+  .player-section{
+    grid-template-columns:1fr;
+  }
+
+  .channels{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:650px){
+  .header-inner{
+    flex-wrap:wrap;
+  }
+
+  .logo{
+    width:100%;
+  }
+
+  .search{
+    width:100%;
+    order:3;
+  }
+
+  .header-btn{
+    padding:10px 12px;
+  }
+
+  .channels{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+
+  .channel{
+    min-height:112px;
+    padding:13px;
+  }
+
+  .player-info h1{
+    font-size:20px;
+  }
+}
+
+@media(max-width:400px){
+  .channels{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .channel-name{
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="header-inner">
+
+    <div class="logo">
+      <div class="logo-icon">▶</div>
+      <div>
+        <strong>KURDISTAN IPTV</strong>
+        <span>LIVE TELEVISION PLATFORM</span>
+      </div>
+    </div>
+
+    <div class="search">
+      <span class="search-icon">⌕</span>
+      <input id="search" type="search" placeholder="Search channels...">
+    </div>
+
+    <button class="header-btn" id="favBtn">★ Favorites</button>
+
+  </div>
+</header>
+
+<main class="main">
+
+  <section class="player-section">
+
+    <div class="player-box">
+      <video id="video" controls playsinline></video>
+
+      <div class="player-overlay">
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          LIVE
+        </div>
+      </div>
+    </div>
+
+    <aside class="player-info">
+
+      <h1 id="currentName">Select a channel</h1>
+
+      <div class="meta" id="currentMeta">
+        Choose a channel from the list below.
+      </div>
+
+      <div class="status" id="status">
+        Ready
+      </div>
+
+      <div class="control-row">
+        <button class="control-btn" onclick="retryStream()">↻ Retry</button>
+        <button class="control-btn" onclick="stopStream()">■ Stop</button>
+        <button class="control-btn" onclick="fullscreenVideo()">⛶ Fullscreen</button>
+      </div>
+
+    </aside>
+
+  </section>
+
+  <nav class="categories" id="categories"></nav>
+
+  <div class="toolbar">
+    <h2>Live Channels</h2>
+    <div class="counter" id="counter">0 channels</div>
+  </div>
+
+  <section class="channels" id="channels"></section>
+
+  <div class="empty" id="empty">
+    <h3>No channels found</h3>
+    <p>Try another search or category.</p>
+  </div>
+
+</main>
+
+<footer class="footer">
+  © 2026 KURDISTAN IPTV — Live TV Platform
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+/* =========================================================
+   KURDISTAN IPTV PLAYLIST
+   ========================================================= */
+
+const playlist = String.raw`
+
+KU | RUDAW TV
+https://live.rudaw.net/hls/rudaw-tv/master.m3u8
+
+KU | AVA MEDIA TV
+https://ava2.store/upload/ava.m3u8
+
+KU | KURDISTAN 24 TV
+https://hlspackager.akamaized.net/live/DB/K24/HLS/K24.m3u8
+
+KU | SPEDA TV HD
+https://speda1.site/upload/images/spedahd.m3u8
+
+KU | GALI KURDISTAN TV
+http://185.95.184.33:25461/live/120541/20364/182.m3u8
+
+KU | KURDSAT NEWS TV
+https://hlspackager.akamaized.net/live/DB/KURDSAT_NEWS/HLS/KURDSAT_NEWS.m3u8
+
+KU | NUÇÊ TV
+https://hlspackager.akamaized.net/live/DB/NU_TV/HLS/NU_TV.m3u8
+
+KU | NRT TV HD
+https://live20.bozztv.com/giatv/giatv-nrt/nrt/chunks.m3u8
+
+KU | CHANNEL 8
+https://live.channel8.com/Channel8-Kurdish/index.m3u8
+
+KU | MMN NEWS TV
+http://mmn.mypsx.net:1935/live/mmnhdnews/playlist.m3u8
+
+KU | KIRKUK TV HD
+https://live.kirkuklive.live/hls/stream/index.m3u8
+
+KU | BMC TV HD
+http://185.95.184.33:25461/live/120541/20364/88.m3u8
+
+KU | ZED PLUS+ TV
+http://185.95.184.33:25461/live/120541/20364/99.m3u8
+
+KU | SLEMANI TV HD
+http://185.95.184.33:25461/live/120541/20364/102.m3u8
+
+KU | DERWAZA TV HD
+http://185.95.184.33:25461/live/120541/20364/104.m3u8
+
+KU | HALABJA TV HD
+http://185.95.184.33:25461/live/120541/20364/107.m3u8
+
+KU | JK TV HD
+http://185.95.184.33:25461/live/120541/20364/108.m3u8
+
+KU | MIX TV HD
+http://185.95.184.33:25461/live/120541/20364/124.m3u8
+
+KU | NISHTIMANI MN TV
+http://185.95.184.33:25461/live/120541/20364/126.m3u8
+
+KU | ASTERA SPORT TV
+http://185.95.184.33:25461/live/120541/20364/149.m3u8
+
+KU | U TV 2
+http://185.95.184.33:25461/live/120541/20364/169.m3u8
+
+KU | ASTERA MOVIES TV
+http://185.95.184.33:25461/live/120541/20364/172.m3u8
+
+KU | AFARIN TV HD
+http://185.95.184.33:25461/live/120541/20364/196.m3u8
+
+KU | CN ARABIA TV
+http://185.95.184.33:25461/live/120541/20364/198.m3u8
+
+KU | SAUDI SUNNAH TV
+http://185.95.184.33:25461/live/120541/20364/203.m3u8
+
+KU | RASULULLAH TV
+http://185.95.184.33:25461/live/120541/20364/3904.m3u8
+
+KU | ALWAN Z TV
+http://185.95.184.33:25461/live/120541/20364/223.m3u8
+
+KU | ASTERA KULTUR TV
+http://185.95.184.33:25461/live/120541/20364/199.m3u8
+
+KU | AZADI TV HD
+http://185.95.184.33:25461/live/120541/20364/4694.m3u8
+
+KU | RENG DOCUMENTARY TV
+http://185.95.184.33:25461/live/120541/20364/186.m3u8
+
+KU | QALLAM TV ISLAMIC
+http://185.95.184.33:25461/live/120541/20364/3900.m3u8
+
+KU | ZNAR TV HD
+http://185.95.184.33:25461/live/120541/20364/161.m3u8
+
+KU | KURDISTAN TV HD
+https://5a3ed7a72ed4b.streamlock.net/live/SMIL:myStream.smil/playlist.m3u8
+
+KU | SHAR TV HD
+http://avrstream.com:1935/live/SHARTV/playlist.m3u8
+
+KU | AVAR TV HD
+https://avr.host247.net/live/AvarTv/playlist.m3u8
+
+KU | KURDSAT TV HD
+https://hlspackager.akamaized.net/live/DB/KURDSAT_HD/HLS/KURDSAT_HD.m3u8
+
+KU | WELAT TV HD
+https://stream.badinan.xyz/welat/tv/playlist.m3u8
+
+KU | BAHRA TV HD
+http://51.89.152.180:80/live/BahraHD/chunks.m3u8
+
+KU | BASK TV HD
+http://baskhd.ddns.net:40/live/baskhd/playlist.m3u8
+
+KU | EURO KURD TV
+http://baskhd.ddns.net:40/live/Eurokurd/index.m3u8
+
+KU | GK+ TV HD
+https://live.host247.net/gk/gkplus/playlist.m3u8
+
+KU | IKURD TV HD
+https://lbgo.bozztv.com/ssh101/ssh101/kurd26/playlist.m3u8
+
+KU | PESHANG TV HD
+https://stream.forcaroo.com/stream/hls/desktop.m3u8
+
+KU | RED TV HD
+http://avrstream.com:1935/live/REDTV/playlist.m3u8
+
+KU | KURD7 TV HD
+http://avrstream.com:1935/live/Kurd7HD/playlist.m3u8
+
+KU | HOMZHYAR TV HD
+http://avrstream.com:1935/live/HormzyarHD/playlist.m3u8
+
+KU | GEWHER TV HD
+https://iptv-link.short.gy/Gewher.m3u8
+
+KU | WAAR TV HD
+https://live.kwikmotion.com/waarmedialive/waarmedia.smil/playlist.m3u8
+
+KU | AVA FAMILY TV
+https://familyhls.avatv.live/hls/stream.m3u8
+
+KU | KHAK TV HD
+http://bblserver.ddns.net:1935/stream/khakhd/tracks-v1a1/mono.m3u8
+
+KU | PAYAM TV HD
+https://media2.streambrothers.com:1936/8218/8218/playlist.m3u8
+
+KU | 4KURD TV HD
+https://4kuhls.persiana.live/hls/stream.m3u8
+
+KU | AlTERNATIVE SHARAY TV
+https://hlspackager.akamaized.net/live/DB/ALTERNATIVE_SHORAI_TV/HLS/ALTERNATIVE_SHORAI_TV-avc1_1500000=10001.m3u8
+
+KU | CAN TV HD
+https://livetv.canbroadcast.com:7443/canlican/tv.m3u8
+
+KU | CIRA TV HD
+https://hlspackager.akamaized.net/live/DB/CIRA_TV/HLS/CIRA_TV.m3u8
+
+KU | JIN TV HD
+https://live.jintv.org/medialive/jintv.m3u8
+
+KU | KURD CHANNEL TV
+https://kurdchhls.wns.live/hls/stream.m3u8
+
+KU | MMN DOCUMENTARY TV
+http://mmn.mypsx.net:1935/live/mmnhddocumentary/playlist.m3u8
+
+KU | SHNA TV HD
+https://lbgo.bozztv.com/ssh101/ssh101/shna12345/chunks.m3u8
+
+KU | MIX TV HD
+http://avrstream.com:1935/live/Mix-kurdy/playlist.m3u8
+
+KU | NAQSHI MEDIA TV
+http://naqshi-media.com:1935/live/NaqshiMedia/playlist.m3u8
+
+KU | REHBER TV HD
+https://cdn4.yayin.com.tr/rehbertv/tracks-v1a1/mono.m3u8
+
+KU | SORAN ENTERTAIMENT TV
+http://avrstream.com:1935/live/SoranEntertainment/playlist.m3u8
+
+KU | BAHA TV HD
+http://baskhd.ddns.net:40/live/baskhd/yusfstore.m3u8
+
+KU | SADA TV HD
+http://sada-hd.ddns.net:40/live/sadatv/index.m3u8
+
+KU | NIGA FAMILY TV
+http://185.95.184.33:25461/live/120541/20364/110.m3u8
+
+KU | ARO FAMILY TV
+http://185.95.184.33:25461/live/120541/20364/128.m3u8
+
+KU | NRT4 TV HD
+http://185.95.184.33:25461/live/120541/20364/156.m3u8
+
+KU | BARIN MOVIES TV
+https://cdn.karwan.tv/barin-movies/index.m3u8
+
+KU | BARIN FAMILY TV
+http://baskhd.ddns.net:40/live/BarinfamilyHD/mono.m3u8
+
+KU | NEW FAMILY TV
+https://cdn.karwan.tv/bnar-family/index.m3u8
+
+KU | NEW MOVIES TV
+https://cdn.karwan.tv/bnar-movies/index.m3u8
+
+KU | NEW ACTION TV
+https://cdn.karwan.tv/bnar-action/index.m3u8
+
+KU | ZHIN FILM TV
+https://183.bozztv.com/giatv/giatv-zhintv/zhintv/playlist.m3u8
+
+KU | MMN ART TV
+http://mmn.mypsx.net:1935/live/mmnhdmovies/playlist.m3u8
+
+KU | MMN ACTION TV
+http://mmn.mypsx.net:1935/live/mmnhdaction/playlist.m3u8
+
+KU | SPEDA DRAMA TV
+https://speda2.site/upload/images/spedadrama.m3u8
+
+KU | PELISTANK TV HD
+http://185.95.184.33:25461/live/120541/20364/187.m3u8
+
+KU | MMN KIDS TV
+http://185.95.184.33:25461/live/120541/20364/209.m3u8
+
+KU | BARIN QURAN TV
+http://185.95.184.33:25461/live/120541/20364/4326.m3u8
+
+KU | ZAROK TV KURMANJI
+https://zindikurmanci.zaroktv.com.tr/hls/stream.m3u8
+
+KU | ZAROK TV HD
+https://zindisorani.zaroktv.com.tr/hls/0/stream.m3u8
+
+KU | GEWHER KIDS TV
+https://iptv-link.short.gy/Gewher_Kids.m3u8
+
+KU | KIDCO TV HD
+http://avrstream.com:1935/live/kidcohd/playlist.m3u8
+
+KU | ZOOMOO TV HD
+https://zoomoo-samsungau.amagi.tv/playlist.m3u8
+
+KU | TOM AND JERRY TV
+https://live20.bozztv.com/giatvplayout7/giatv-208314/playlist.m3u8
+
+KU | RYAN AND FREINDS TV
+https://ryanandfriends-samsungau.amagi.tv/playlist.m3u8
+
+KU | ROYA TV HD
+https://playlist.fasttvcdn.com/pl/ptllxjd03j6g9oxxjdfapg/roya-kids-originals/playlist.m3u8
+
+KU | ABC KIDS TV
+https://c.mjh.nz/abc-kids.m3u8
+
+KU | BABY SHARK TV
+https://c0c65b821b3542c3a4dca92702f59944.mediatailor.us-east-1.amazonaws.com/v1/master/04fd913bb278d8775298c26fdca9d9841f37601f/RakutenTV-eu_BabySharkTV/playlist.m3u8
+
+KU | MARAYA KIDS TV
+https://live.kwikmotion.com/smckidslive/tjkids1.smil/smckidspublish/tjkids1_source/chunks.m3u8
+
+KU | SROSHT TV HD
+http://185.95.184.33:25461/live/120541/20364/159.m3u8
+
+KU | NIGA KIDS TV
+http://185.95.184.33:25461/live/120541/20364/193.m3u8
+
+KU | BANGAWAZ TV HD
+http://bangawaztv.ddns.net:40/live/bangawaztv/playlist.m3u8
+
+KU | AMOZHGARI TV HD
+https://app-live.org/live/3268334b/index.m3u8
+
+KU | ACADEMY AMOZHGARI TV
+https://app-live.org/live/a267c1b3/index.m3u8
+
+KU | EMAN TV HD
+https://avr.host247.net/live/emantv/playlist.m3u8
+
+KU | FARMOODA TV HD
+https://avr.host247.net/live/FarmodaTV/playlist.m3u8
+
+KU | WALLA QURAN TV
+http://cdn.karwan.tv/WALAQURAN/index.m3u8
+
+KU | IMK TV HD
+http://imkhd.ddns.net:1935/live/imkhd/playlist.m3u8
+
+KU | IMK QURAN TV
+http://avrstream.com:1935/live/IMKQURANHD/playlist.m3u8
+
+KU | ESRA TV HD
+https://live20.bozztv.com/giatv/giatv-ESRAHD/ESRAHD/chunks.m3u8
+
+KU | ESRA TV HD 2
+https://live20.bozztv.com/giatv/giatv-esra2hd_kamalblbas/esra2hd_kamalblbas/chunks.m3u8
+
+KU | ESRA QURAN TV
+https://live20.bozztv.com/giatv/giatv-esraquran_kamalblbas/esraquran_kamalblbas/chunks.m3u8
+
+KU | SPI QURAN TV
+https://183.bozztv.com/giatv/giatv-spi_quran_hd/spi_quran_hd/playlist.m3u8
+
+KU | MMN QURAN TV
+http://mmn.mypsx.net:1935/live/mmnhdquran/playlist.m3u8
+
+KU | ASHTI QURAN TV
+http://avrstream.com:1935/live/AshtiTV/playlist.m3u8
+
+KU | MIHRAB TV HD
+http://baskhd.ddns.net:40/live/baskhd/playlist.m3u8
+
+KU | MIHRAB FM HD
+http://bblserver.ddns.net:1935/live/mihrabfm/playlist.m3u8
+
+KU | SOZ QURAN TV
+http://live20.bozztv.com/giatv/giatv-sozquran/sozquran/chunks.m3u8
+
+KU | SOZ TV HD
+https://live20.bozztv.com/giatv/giatv-sozetv/sozetv/chunks.m3u8
+
+KU | RAWSHAN TV HD
+http://rawshan.ddns.net:1935/live/rawshantv/playlist.m3u8
+
+KU | SAUDI QURAN TV
+https://win.holol.com/live/quran/playlist.m3u8
+
+KU | SAUDI SUNNAH TV
+https://win.holol.com/live/sunnah/playlist.m3u8
+
+KU | ISLAMIC MEDIA LIVE 1
+https://media2.streambrothers.com:1936/8122/8122/playlist.m3u8
+
+KU | KSA QURAN RADIO
+https://live.kwikmotion.com/sbrksaquranradiolive/srpksaquranradio/playlist.m3u8
+
+KU | ALWAN SPORT TV
+http://72321912.vipma.site:80/live/Q23U45Y4/24558261/1275547.m3u8
+
+KU | NRT SPORT TV
+http://185.95.184.33:25461/live/120541/20364/167.m3u8
+
+AR | JAZZIRA DOCUMENTARY TV
+http://185.95.184.33:25461/live/120541/20364/4688.m3u8
+
+KU | GEWHER SPORT TV
+https://iptv-link.short.gy/Gewher_Sport.m3u8
+
+KU | MMN SPORT TV
+http://mmn.mypsx.net:1935/live/mmnhdsport/playlist.m3u8
+
+KU | ZAYTOUN SPORT TV
+https://barham.short.gy/zvgsport.m3u8
+
+KU | ALKASS TV HD
+https://liveeu-gcp.alkassdigital.net/alkass1-p/main.m3u8
+
+KU | RANYA TV HD
+http://185.95.184.33:25461/live/120541/20364/163.m3u8
+
+KU | QELLAT TV HD
+http://185.95.184.33:25461/live/120541/20364/4075.m3u8
+
+KU | KURDMAX PEPULE
+http://185.95.184.33:25461/live/120541/20364/197.m3u8
+
+AR | QATAR TV HD
+https://qatartv.akamaized.net/hls/live/20000609/qtv1/master.m3u8
+
+AR | QATAR TV 2
+https://qatartv.akamaized.net/hls/live/20000611/qtv2/master.m3u8
+
+AR | WATAN TV HD
+https://rp.tactivemedia.com/watantv_source/live/playlist.m3u8
+
+AR | ZAGROS TV HD
+https://5a3ed7a72ed4b.streamlock.net/zagrostv/SMIL:myStream.smil/playlist.m3u8
+
+AR | SHARQIA TV
+https://5d94523502c2d.streamlock.net/home/mystream/playlist.m3u8
+
+AR | ALGHAD TV HD
+https://eazyvwqssi.erbvr.com/alghadtv/alghadtv.m3u8
+
+AR | SHARQIA NEWS
+https://5d94523502c2d.streamlock.net/alsharqiyalive/mystream/playlist.m3u8
+
+AR | AL JAZEERA
+https://live-hls-web-aja2-gcp.thehlive.com/AJA2/index.m3u8
+
+AR | AL ARABIA NEWS
+https://live.kwikmotion.com/alaraby1live/alaraby_abr/playlist.m3u8
+
+KU | PARWARDAYI SLEMANI TV
+https://parwarda.unitedmixmedia.tv/Parwarda/tracks-v2a1/mono.m3u8
+
+KU | PARWARDAYI DUHOK TV
+https://parwarda.unitedmixmedia.tv/Parwardayi_Duhok/tracks-v2a1/mono.m3u8
+
+KU | PARWARDAYI HEWLER TV
+https://parwarda.unitedmixmedia.tv/Parwardayi_Hawler/tracks-v2a1/mono.m3u8
+
+AR | MBC 1 TV
+https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-1/15cf99af5de54063fdabfefe66adc075/index.m3u8
+
+AR | MBC 2 TV
+http://185.95.184.33:25461/live/120541/20364/5591.m3u8
+
+AR | MBC 3 TV
+https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-3-usa/5d58265a862a476dc7f97694addb5ded/index.m3u8
+
+AR | MBC 4 TV
+https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-4/24f134f1cd63db9346439e96b86ca6ed/index.m3u8
+
+AR | MBC 5 TV
+https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8
+
+AR | MBC DRAMA TV
+https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-drama/2c28a458e2f3253e678b07ac7d13fe71/index.m3u8
+
+AR | MBC BOLLYWOOD TV
+https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-bollywood/546eb40d7dcf9a209255dd2496903764/index.m3u8
+
+AR | MBC ACTION
+http://185.95.184.33:25461/live/120541/20364/221.m3u8
+
+AR | MBC IRAQ
+http://185.95.184.33:25461/live/120541/20364/4726.m3u8
+
+AR | THAMANYAH TV HD
+http://185.95.184.33:25461/live/120541/20364/5588.m3u8
+
+AR | BEIN MOVIES 2 TV
+http://185.95.184.33:25461/live/120541/20364/5585.m3u8
+
+AR | NAT GEO TV
+http://185.95.184.33:25461/live/120541/20364/5581.m3u8
+
+AR | SPACETOON TV HD
+http://185.95.184.33:25461/live/120541/20364/5541.m3u8
+
+AR | BEIN NEWS TV
+http://185.95.184.33:25461/live/120541/20364/4767.m3u8
+
+AR | AL HADATH TV
+http://185.95.184.33:25461/live/120541/20364/4724.m3u8
+
+AR | ONE MOVIES TV
+http://185.95.184.33:25461/live/120541/20364/5542.m3u8
+
+AR | MAKKAH TV HD
+http://185.95.184.33:25461/live/120541/20364/5574.m3u8
+
+AR | SHAMS TV HD
+http://185.95.184.33:25461/live/120541/20364/5575.m3u8
+
+AR | STAR MOVIES TV
+http://185.95.184.33:25461/live/120541/20364/5587.m3u8
+
+KU | BASK KIDS TV
+http://185.95.184.33:25461/live/120541/20364/5593.m3u8
+
+KU | ONE KIDS
+http://185.95.184.33:25461/live/120541/20364/5598.m3u8
+
+KU | RENG KIDS
+http://185.95.184.33:25461/live/120541/20364/204.m3u8
+
+AR | AL ARABIA TV
+http://185.95.184.33:25461/live/120541/20364/171.m3u8
+
+KU | NRT 2 TV
+http://185.95.184.33:25461/live/120541/20364/152.m3u8
+
+KU | NEW LINE 1 TV
+http://185.95.184.33:25461/live/120541/20364/112.m3u8
+
+KU | NEW LINE 2 TV
+http://185.95.184.33:25461/live/120541/20364/113.m3u8
+
+KU | DIMEN TV HD
+http://185.95.184.33:25461/live/120541/20364/92.m3u8
+
+KU | TRAFFIQ FM HD
+http://185.95.184.33:25461/live/120541/20364/5013.m3u8
+
+KU | MMN SPORT TV
+http://185.95.184.33:25461/live/120541/20364/213.m3u8
+
+KU | PARWARDAYI TV HD
+http://185.95.184.33:25461/live/120541/20364/3302.m3u8
+
+KU | QALLAM TV HD
+http://185.95.184.33:25461/live/120541/20364/3899.m3u8
+
+KU | IRAQIA SPORT TV
+http://185.95.184.33:25461/live/120541/20364/3908.m3u8
+
+KU | K24 DOCUMENTARY TV
+http://185.95.184.33:25461/live/120541/20364/4362.m3u8
+
+KU | TRT 1 TV
+https://tv-trt1.medya.trt.com.tr/master.m3u8
+
+KU | TRT NEWS/HABER TV
+https://tv-trthaber.medya.trt.com.tr/master.m3u8
+
+KU | TRT MUSIC TV
+https://tv-trtmuzik.medya.trt.com.tr/master.m3u8
+
+KU | TRT KURDI TV
+https://tv-trtkurdi.medya.trt.com.tr/master.m3u8
+
+KU | TRT ARABIC TV
+https://tv-trtarabi.medya.trt.com.tr/master.m3u8
+
+KU | SKY NEWS TV
+https://stream.skynewsarabia.com/hls/sna.m3u8
+
+KU | ACTION HOLLYWOOD TV
+https://cdn-apse1-prod.tsv2.amagi.tv/linear/amg01076-lightningintern-actionhollywood-samsungnz/playlist.m3u8
+
+KU | CNN TV HD
+https://turnerlive.warnermediacdn.com/hls/live/586495/cnngo/cnn_slate/VIDEO_0_3564000.m3u8
+
+KU | BEIN SPORT NEWS HD
+http://iptvhouse.pro:80/live/7598066813/503118f6f7/544476.m3u8
+
+KU | BEIN SPORT 1 8K SD
+http://iptvhouse.pro:80/live/7598066813/503118f6f7/544474.m3u8
+
+KU | BEIN SPORT 2 8K SD
+http://iptvhouse.pro:80/live/7598066813/503118f6f7/544473.m3u8
+
+KU | NETFLIX ACTION HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/487989.m3u8
+
+KU | NETFLIX ACTION 2 HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/487986.m3u8
+
+KU | NETFLIX ACTION 3 HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/487985.m3u8
+
+KU | NETFLIX ANIME HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/488002.m3u8
+
+KU | NETFLIX COMEDY HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/487974.m3u8
+
+KU | NETFLIX DRAMA 1 HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/487994.m3u8
+
+KU | NETFLIX DRAMA 2 HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/487993.m3u8
+
+KU | NETFLIX KIDS HD
+http://vip2.sharkhost.xyz:80/live/9143315182/7352465335/487967.m3u8
+
+KU | IRAQIA KURDISH
+https://imn-live.esite-lab.com/hls/iraqia-kurdish.m3u8
+
+KU | IRAQIA NEWS
+https://imn-live.esite-lab.com/hls/iraqia-news.m3u8
+
+KU | KELGA TV HD
+https://lbgo.bozztv.com/ssh101/live/Kelga/playlist.m3u8
+
+KU | PESHMARGA TV HD
+https://live20.bozztv.com/giatv/giatv-Shawkat/peshmerge/playlist.m3u8
+
+KU | DIGLAH TV HD
+https://ghaasiflu.online/Dijlah/index.m3u8
+
+KU | BEFRIN TV HD
+https://cdn.karwan.tv/befrin-tv/index.m3u8
+
+KU | ATV HD
+https://b.livev.xyz/aytv/tracks-v1a1/mono.m3u8
+
+KU | SHOW TV HD
+https://b.livev.xyz/kanald/tracks-v1a1/mono.m3u8
+
+KU | DASINYA SPORT TV
+http://169.58.235.218/stream/dasinya.m3u8
+`;
+
+
+/* =========================================================
+   PARSER
+   ========================================================= */
+
+function parsePlaylist(text){
+
+  const lines = text
+    .split(/\r?\n/)
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  const result = [];
+
+  for(let i = 0; i < lines.length - 1; i++){
+
+    const nameLine = lines[i];
+    const urlLine = lines[i + 1];
+
+    if(
+      /^(KU|AR)\s*\|/i.test(nameLine) &&
+      /^https?:\/\//i.test(urlLine)
+    ){
+
+      const parts = nameLine.split("|");
+      const group = parts[0].trim();
+      const name = parts.slice(1).join("|").trim();
+
+      result.push({
+        id: cryptoRandom(),
+        group,
+        name,
+        url:urlLine,
+        type:getStreamType(urlLine)
+      });
+
+      i++;
+    }
+  }
+
+  return result;
+}
+
+function cryptoRandom(){
+  return Math.random().toString(36).substring(2,10);
+}
+
+function getStreamType(url){
+
+  const clean = url.toLowerCase();
+
+  if(clean.includes("extension=ts") || /\.ts(\?|$)/i.test(clean)){
+    return "TS";
+  }
+
+  if(clean.includes(".m3u8")){
+    return "HLS";
+  }
+
+  return "STREAM";
+}
+
+const channels = parsePlaylist(playlist);
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let currentChannel = null;
+let currentIndex = -1;
+let currentCategory = "ALL";
+let favoritesOnly = false;
+let hls = null;
+
+const favorites =
+  new Set(JSON.parse(localStorage.getItem("kurdistan_iptv_favorites") || "[]"));
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const video = document.getElementById("video");
+const channelContainer = document.getElementById("channels");
+const categoriesContainer = document.getElementById("categories");
+const searchInput = document.getElementById("search");
+const currentName = document.getElementById("currentName");
+const currentMeta = document.getElementById("currentMeta");
+const statusBox = document.getElementById("status");
+const counter = document.getElementById("counter");
+const empty = document.getElementById("empty");
+const toast = document.getElementById("toast");
+
+
+/* =========================================================
+   CATEGORY DETECTION
+   ========================================================= */
+
+function getCategory(channel){
+
+  const n = channel.name.toUpperCase();
+
+  if(
+    n.includes("SPORT") ||
+    n.includes("BEIN SPORT") ||
+    n.includes("ALKASS") ||
+    n.includes("IRAQIA SPORT")
+  ) return "SPORT";
+
+  if(
+    n.includes("KIDS") ||
+    n.includes("KID") ||
+    n.includes("ZAROK") ||
+    n.includes("BABY SHARK") ||
+    n.includes("TOM AND JERRY") ||
+    n.includes("ZOOMOO") ||
+    n.includes("RYAN")
+  ) return "KIDS";
+
+  if(
+    n.includes("QURAN") ||
+    n.includes("SUNNAH") ||
+    n.includes("ISLAMIC") ||
+    n.includes("RASULULLAH") ||
+    n.includes("MIHRAB")
+  ) return "QURAN";
+
+  if(
+    n.includes("MOVIE") ||
+    n.includes("ACTION") ||
+    n.includes("NETFLIX") ||
+    n.includes("BOLLYWOOD") ||
+    n.includes("DRAMA")
+  ) return "MOVIES";
+
+  if(
+    n.includes("NEWS") ||
+    n.includes("RUDAW") ||
+    n.includes("CNN") ||
+    n.includes("JAZEERA") ||
+    n.includes("AL JAZEERA") ||
+    n.includes("AL ARABIA") ||
+    n.includes("HABER")
+  ) return "NEWS";
+
+  if(
+    n.includes("MUSIC") ||
+    n.includes("FM")
+  ) return "MUSIC";
+
+  if(
+    n.includes("FAMILY")
+  ) return "FAMILY";
+
+  return channel.group;
+}
+
+
+/* =========================================================
+   CATEGORIES
+   ========================================================= */
+
+function buildCategories(){
+
+  const base = [
+    "ALL",
+    "KU",
+    "AR",
+    "SPORT",
+    "NEWS",
+    "MOVIES",
+    "KIDS",
+    "QURAN",
+    "MUSIC",
+    "FAMILY"
+  ];
+
+  categoriesContainer.innerHTML = "";
+
+  base.forEach(cat => {
+
+    const button = document.createElement("button");
+
+    button.className = "cat" +
+      (currentCategory === cat ? " active" : "");
+
+    button.textContent = cat;
+
+    button.onclick = () => {
+
+      currentCategory = cat;
+      favoritesOnly = false;
+
+      document.getElementById("favBtn").classList.remove("active");
+
+      buildCategories();
+      renderChannels();
+    };
+
+    categoriesContainer.appendChild(button);
+
+  });
+}
+
+
+/* =========================================================
+   FILTER
+   ========================================================= */
+
+function filteredChannels(){
+
+  const query = searchInput.value
+    .trim()
+    .toLowerCase();
+
+  return channels.filter(channel => {
+
+    const matchesSearch =
+      !query ||
+      channel.name.toLowerCase().includes(query) ||
+      channel.group.toLowerCase().includes(query);
+
+    const category =
+      currentCategory === "ALL" ||
+      getCategory(channel) === currentCategory;
+
+    const favorite =
+      !favoritesOnly ||
+      favorites.has(channel.id);
+
+    return matchesSearch && category && favorite;
+  });
+}
+
+
+/* =========================================================
+   RENDER CHANNELS
+   ========================================================= */
+
+function renderChannels(){
+
+  const list = filteredChannels();
+
+  channelContainer.innerHTML = "";
+
+  counter.textContent =
+    `${list.length} / ${channels.length} channels`;
+
+  empty.style.display =
+    list.length ? "none" : "block";
+
+  list.forEach(channel => {
+
+    const card = document.createElement("article");
+
+    card.className =
+      "channel" +
+      (currentChannel?.id === channel.id ? " selected" : "");
+
+    const favorite =
+      favorites.has(channel.id);
+
+    const initials =
+      channel.name
+        .replace(/TV|HD|\+/gi,"")
+        .trim()
+        .split(/\s+/)
+        .slice(0,2)
+        .map(x => x[0])
+        .join("")
+        .toUpperCase();
+
+    card.innerHTML = `
+      <div class="type-badge">${channel.type}</div>
+
+      <div class="channel-top">
+
+        <div class="channel-logo">
+          ${escapeHTML(initials || "TV")}
+        </div>
+
+        <button
+          class="favorite ${favorite ? "active" : ""}"
+          title="Favorite"
+          aria-label="Favorite"
+        >
+          ${favorite ? "★" : "☆"}
+        </button>
+
+      </div>
+
+      <div class="channel-name">
+        ${escapeHTML(channel.name)}
+      </div>
+
+      <div class="channel-group">
+        ${escapeHTML(getCategory(channel))}
+      </div>
+    `;
+
+    const favButton =
+      card.querySelector(".favorite");
+
+    favButton.addEventListener("click", event => {
+
+      event.stopPropagation();
+
+      toggleFavorite(channel);
+
+    });
+
+    card.addEventListener("click", () => {
+      playChannel(channel);
+    });
+
+    channelContainer.appendChild(card);
+  });
+}
+
+
+/* =========================================================
+   PLAY CHANNEL
+   ========================================================= */
+
+function playChannel(channel){
+
+  currentChannel = channel;
+  currentIndex = channels.indexOf(channel);
+
+  currentName.textContent = channel.name;
+
+  currentMeta.textContent =
+    `${getCategory(channel)} • ${channel.type}`;
+
+  setStatus(
+    `Connecting to ${channel.name}...`,
+    "ok"
+  );
+
+  destroyPlayer();
+
+  video.removeAttribute("src");
+  video.load();
+
+  const url = channel.url;
+
+  if(channel.type === "HLS"){
+
+    if(window.Hls && Hls.isSupported()){
+
+      hls = new Hls({
+        enableWorker:true,
+        lowLatencyMode:false,
+        backBufferLength:30,
+        maxBufferLength:30,
+        capLevelToPlayerSize:true,
+        startFragPrefetch:true
+      });
+
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+
+        setStatus(
+          "Live stream connected",
+          "ok"
+        );
+
+        video.play().catch(() => {});
+
+      });
+
+      hls.on(Hls.Events.ERROR, (event,data) => {
+
+        if(data.fatal){
+
+          setStatus(
+            "Stream error — press Retry",
+            "error"
+          );
+
+        }
+
+      });
+
+    }else if(
+      video.canPlayType("application/vnd.apple.mpegurl")
+    ){
+
+      video.src = url;
+
+      video.addEventListener(
+        "loadedmetadata",
+        () => {
+          video.play().catch(() => {});
+        },
+        {once:true}
+      );
+
+      setStatus(
+        "Native HLS playback",
+        "ok"
+      );
+
+    }else{
+
+      setStatus(
+        "This browser does not support HLS",
+        "error"
+      );
+
+    }
+
+  }else{
+
+    video.src = url;
+
+    video.addEventListener(
+      "loadedmetadata",
+      () => {
+        video.play().catch(() => {});
+      },
+      {once:true}
+    );
+
+    video.addEventListener(
+      "error",
+      () => {
+
+        setStatus(
+          "Direct TS playback is not supported by this browser or the source is unavailable.",
+          "error"
+        );
+
+      },
+      {once:true}
+    );
+
+    setStatus(
+      "Trying direct TS stream...",
+      "ok"
+    );
+  }
+
+  renderChannels();
+}
+
+
+/* =========================================================
+   PLAYER EVENTS
+   ========================================================= */
+
+video.addEventListener("playing", () => {
+
+  if(currentChannel){
+    setStatus(
+      `LIVE • ${currentChannel.name}`,
+      "ok"
+    );
+  }
+
+});
+
+video.addEventListener("waiting", () => {
+
+  if(currentChannel){
+    setStatus(
+      "Buffering...",
+      "ok"
+    );
+  }
+
+});
+
+video.addEventListener("stalled", () => {
+
+  if(currentChannel){
+    setStatus(
+      "Stream stalled — waiting for data...",
+      "error"
+    );
+  }
+
+});
+
+
+/* =========================================================
+   RETRY
+   ========================================================= */
+
+function retryStream(){
+
+  if(currentChannel){
+    playChannel(currentChannel);
+  }else{
+    showToast("Select a channel first");
+  }
+
+}
+
+
+/* =========================================================
+   STOP
+   ========================================================= */
+
+function stopStream(){
+
+  destroyPlayer();
+
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+
+  setStatus(
+    "Playback stopped",
+    ""
+  );
+
+}
+
+
+/* =========================================================
+   DESTROY PLAYER
+   ========================================================= */
+
+function destroyPlayer(){
+
+  if(hls){
+
+    try{
+      hls.destroy();
+    }catch(e){}
+
+    hls = null;
+  }
+}
+
+
+/* =========================================================
+   FULLSCREEN
+   ========================================================= */
+
+function fullscreenVideo(){
+
+  if(video.requestFullscreen){
+    video.requestFullscreen();
+  }else if(video.webkitEnterFullscreen){
+    video.webkitEnterFullscreen();
+  }else{
+    showToast("Fullscreen is not supported");
+  }
+
+}
+
+
+/* =========================================================
+   FAVORITES
+   ========================================================= */
+
+function toggleFavorite(channel){
+
+  if(favorites.has(channel.id)){
+
+    favorites.delete(channel.id);
+    showToast("Removed from favorites");
+
+  }else{
+
+    favorites.add(channel.id);
+    showToast("Added to favorites");
+
+  }
+
+  localStorage.setItem(
+    "kurdistan_iptv_favorites",
+    JSON.stringify([...favorites])
+  );
+
+  renderChannels();
+}
+
+
+document.getElementById("favBtn")
+.addEventListener("click", () => {
+
+  favoritesOnly = !favoritesOnly;
+
+  currentCategory = "ALL";
+
+  document
+    .getElementById("favBtn")
+    .classList.toggle("active", favoritesOnly);
+
+  buildCategories();
+  renderChannels();
+
+});
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+searchInput.addEventListener(
+  "input",
+  renderChannels
+);
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+function setStatus(message,type){
+
+  statusBox.textContent = message;
+
+  statusBox.className =
+    "status" +
+    (type ? ` ${type}` : "");
+
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+let toastTimer;
+
+function showToast(message){
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  },2200);
+
+}
+
+
+/* =========================================================
+   SECURITY / HTML ESCAPE
+   ========================================================= */
+
+function escapeHTML(value){
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+   ========================================================= */
+
+document.addEventListener("keydown", event => {
+
+  if(event.key === "Escape"){
+    searchInput.blur();
+  }
+
+  if(event.key === "/"){
+
+    if(document.activeElement !== searchInput){
+
+      event.preventDefault();
+      searchInput.focus();
+
+    }
+
+  }
+
+});
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+buildCategories();
+renderChannels();
+
+console.log(
+  `KURDISTAN IPTV loaded: ${channels.length} channels`
+);
+
+</script>
+
+</body>
+</html>
