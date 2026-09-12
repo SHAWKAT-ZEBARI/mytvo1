@@ -48,14 +48,14 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
-    .floating-cast {
+    .floating-action-btn {
       background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .floating-cast:hover {
+    .floating-action-btn:hover {
       background: rgba(255, 255, 255, 0.22);
       transform: translateY(-2px) scale(1.04);
       box-shadow: 0 6px 25px rgba(255, 255, 255, 0.2);
@@ -86,13 +86,12 @@
 </head>
 <body class="relative w-screen h-screen bg-black flex items-center justify-center">
 
-  <!-- Video Player Element (Full Viewport with AirPlay Support) -->
+  <!-- Video Player Element -->
   <video 
     id="videoPlayer" 
     class="w-full h-full object-contain bg-black cursor-pointer video-rotate-transition" 
     playsinline 
     webkit-playsinline 
-    x-webkit-airplay="allow"
     autoplay 
     preload="auto"
     crossorigin="anonymous">
@@ -112,13 +111,12 @@
     <span class="text-xs sm:text-sm drop-shadow-sm font-semibold">قناة التيلغرام</span>
   </a>
 
-  <!-- Floating Controls Container (Top Right) -->
   <div class="controls-fade absolute top-4 right-4 z-50 flex items-center gap-2.5">
     <!-- Auto-Rotate Toggle Button -->
     <button 
       id="rotateBtn" 
       onclick="toggleAutoRotate()" 
-      class="floating-cast flex items-center gap-2 px-3.5 py-2.5 rounded-full text-white font-bold text-sm tracking-wide border border-white/25 group cursor-pointer active:scale-95"
+      class="floating-action-btn flex items-center gap-2 px-3.5 py-2.5 rounded-full text-white font-bold text-sm tracking-wide border border-white/25 group cursor-pointer active:scale-95"
       title="تدوير الشاشة تلقائياً (أفقي / رأسي)"
     >
       <svg id="rotateIcon" class="w-5 h-5 fill-current transition-transform duration-500 group-hover:rotate-180 text-emerald-400" viewBox="0 0 24 24">
@@ -126,23 +124,9 @@
       </svg>
       <span class="text-xs sm:text-sm drop-shadow-sm font-semibold hidden sm:inline" id="rotateText">تدوير تلقائي</span>
     </button>
-
-    <!-- Floating Screen Mirroring (Cast / AirPlay) Button -->
-    <button 
-      id="castBtn" 
-      onclick="triggerScreenMirroring()" 
-      class="floating-cast flex items-center gap-2 px-3.5 py-2.5 rounded-full text-white font-bold text-sm tracking-wide border border-white/25 group cursor-pointer active:scale-95"
-      title="انعكاس الشاشة على التلفاز (Cast / AirPlay)"
-    >
-      <!-- Screen Cast / AirPlay Icon -->
-      <svg class="w-5 h-5 fill-current transition-transform duration-300 group-hover:scale-110 text-sky-400" viewBox="0 0 24 24">
-        <path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.92-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
-      </svg>
-      <span class="text-xs sm:text-sm drop-shadow-sm font-semibold hidden sm:inline">انعكاس الشاشة</span>
-    </button>
   </div>
 
-  <!-- Minimal Buffering Spinner (Only shows when loading) -->
+  <!-- Minimal Buffering Spinner -->
   <div id="loader" class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] pointer-events-none z-30 transition-opacity duration-300">
     <div class="w-12 h-12 border-3 border-sky-400/20 border-t-sky-400 rounded-full animate-spin"></div>
   </div>
@@ -156,12 +140,12 @@
     let hls = null;
     let audioUnlocked = false;
 
-    // Direct Unmuted Audio Settings
+    // Audio setup
     video.muted = false;
     video.defaultMuted = false;
     video.volume = 1.0;
 
-    // Silent Audio Enabler (triggers without any button)
+    // Silent Audio Enabler
     function activateAudioDirectly() {
       video.muted = false;
       video.volume = 1.0;
@@ -210,7 +194,7 @@
 
     addListeners();
 
-    // Automatic Stream Initializer
+    // Stream Initializer
     function startDirectPlayback() {
       loader.style.display = 'flex';
       video.muted = false;
@@ -264,17 +248,13 @@
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise.then(() => {
-          // Direct audio playback succeeded without touching anything!
           audioUnlocked = true;
           loader.style.display = 'none';
           removeListeners();
         }).catch(() => {
-          // If the browser enforces initial silence, start playing immediately,
-          // and seamlessly unmute on the first subtle movement/scroll without any UI button.
           video.muted = true;
           video.play().then(() => {
             loader.style.display = 'none';
-            // Attempt to restore sound immediately after a slight tick
             setTimeout(() => {
               video.muted = false;
               video.play().then(() => {
@@ -299,11 +279,7 @@
 
     let isForcedLandscape = false;
 
-    // Toggle Landscape / Portrait Mode dynamically
     async function toggleAutoRotate() {
-      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
-
-      // 1. Try Screen Orientation API lock
       if (screen.orientation && typeof screen.orientation.lock === 'function') {
         try {
           if (!isForcedLandscape) {
@@ -320,12 +296,10 @@
             updateRotateButtonState();
             return;
           }
-        } catch (err) {
-          // Fallback to CSS forced rotation if orientation lock is denied or blocked
-        }
+        } catch (err) {}
       }
 
-      // 2. CSS Virtual Rotation (Works on iOS Safari & All browsers even with system orientation lock on)
+      // CSS Virtual Rotation fallback
       isForcedLandscape = !isForcedLandscape;
       if (isForcedLandscape && window.innerHeight > window.innerWidth) {
         video.classList.add('force-landscape');
@@ -350,10 +324,8 @@
       }
     }
 
-    // Auto-detect phone hardware orientation changes
     function handleOrientationChange() {
       if (window.innerWidth > window.innerHeight) {
-        // Physical device is already in landscape -> clear forced CSS rotation
         video.classList.remove('force-landscape');
         isForcedLandscape = false;
         updateRotateButtonState();
@@ -389,7 +361,6 @@
     }
 
     function toggleControls(e) {
-      // Don't toggle when clicking directly inside the buttons
       if (e && e.target && e.target.closest && e.target.closest('.controls-fade')) {
         return;
       }
@@ -400,12 +371,10 @@
       }
     }
 
-    // Toggle on screen click / tap
     video.addEventListener('click', (e) => {
       const currentTime = new Date().getTime();
       const tapInterval = currentTime - lastTapTime;
 
-      // Handle double click/tap for fullscreen
       if (tapInterval < 300 && tapInterval > 0) {
         toggleFullscreen();
         e.preventDefault();
@@ -428,7 +397,6 @@
       }
     }
 
-    // Start with auto-hide timer after page loads
     window.addEventListener('load', () => {
       showControls(3500);
     });
@@ -436,7 +404,6 @@
     video.addEventListener('playing', () => {
       loader.style.display = 'none';
       showControls(3000);
-      // Auto rotate to landscape if opened on mobile in portrait
       if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && window.innerHeight > window.innerWidth && !isForcedLandscape) {
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock('landscape').catch(() => {});
@@ -448,51 +415,6 @@
       loader.style.display = 'flex';
     });
 
-    // Screen Mirroring & Cast Handler
-    async function triggerScreenMirroring() {
-      const toast = document.getElementById('castToast');
-      const toastMsg = document.getElementById('castToastMsg');
-      
-      const showToast = (msg, duration = 3500) => {
-        toastMsg.innerText = msg;
-        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
-        toast.classList.add('opacity-100', 'translate-y-0');
-        setTimeout(() => {
-          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
-          toast.classList.remove('opacity-100', 'translate-y-0');
-        }, duration);
-      };
-
-      // 1. Apple AirPlay Support (iOS / Safari / Mac)
-      if (video.webkitShowPlaybackTargetPicker) {
-        try {
-          video.webkitShowPlaybackTargetPicker();
-          return;
-        } catch (err) {
-          console.log('AirPlay Picker:', err);
-        }
-      }
-
-      // 2. Google Cast & Remote Playback API (Android / Chrome / Smart TVs)
-      if (video.remote && typeof video.remote.prompt === 'function') {
-        try {
-          await video.remote.prompt();
-          return;
-        } catch (err) {
-          if (err.name !== 'NotFoundError' && err.name !== 'NotAllowedError') {
-            console.log('Remote Playback:', err);
-          }
-        }
-      }
-
-      // 3. Fallback: Request Fullscreen & provide connection hint
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-      showToast('لبدء انعكاس الشاشة: تأكد من اتصال هاتفك والشاشة بنفس شبكة Wi-Fi، أو استخدم خيار "بث الشاشة (Cast/Smart View)" من إعدادات جهازك.');
-    }
-
-    // Start stream immediately on page load
     window.addEventListener('DOMContentLoaded', startDirectPlayback);
   </script>
 </body>
