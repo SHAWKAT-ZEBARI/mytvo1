@@ -1,0 +1,500 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>بث مباشر | Live Stream</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000000;
+      font-family: 'Cairo', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .controls-fade {
+      transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.hide-controls .controls-fade {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(-15px) scale(0.96) !important;
+    }
+    .floating-telegram {
+      background: linear-gradient(135deg, #2AABEE, #229ED9);
+      box-shadow: 0 4px 20px rgba(34, 158, 217, 0.45);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .floating-telegram:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 6px 25px rgba(34, 158, 217, 0.65);
+    }
+    .telegram-badge {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .floating-cast {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .floating-cast:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 6px 25px rgba(255, 255, 255, 0.2);
+    }
+    .video-rotate-transition {
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s ease, height 0.35s ease;
+    }
+    .force-landscape {
+      position: fixed !important;
+      width: 100vh !important;
+      height: 100vw !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) rotate(90deg) !important;
+      object-fit: contain !important;
+      z-index: 10 !important;
+      max-width: none !important;
+      max-height: none !important;
+    }
+    .pulse-glow {
+      animation: pulseAnim 2s infinite;
+    }
+    @keyframes pulseAnim {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.15); }
+    }
+  </style>
+</head>
+<body class="relative w-screen h-screen bg-black flex items-center justify-center">
+
+  <!-- Video Player Element (Full Viewport with AirPlay Support) -->
+  <video 
+    id="videoPlayer" 
+    class="w-full h-full object-contain bg-black cursor-pointer video-rotate-transition" 
+    playsinline 
+    webkit-playsinline 
+    x-webkit-airplay="allow"
+    autoplay 
+    preload="auto"
+    crossorigin="anonymous">
+  </video>
+
+  <!-- Floating Telegram Button -->
+  <a 
+    href="https://t.me/shawkatiptv" 
+    target="_blank" 
+    rel="noopener noreferrer" 
+    class="controls-fade floating-telegram absolute top-4 left-4 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-full text-white font-bold text-sm tracking-wide shadow-2xl telegram-badge border border-white/20 group"
+    title="انضم إلى قناة التيليجرام"
+  >
+    <svg class="w-5 h-5 fill-current transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" viewBox="0 0 24 24">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.34-.69.34l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.536-.196 1.006.128.857.923z"/>
+    </svg>
+    <span class="text-xs sm:text-sm drop-shadow-sm font-semibold">قناة التيلغرام</span>
+  </a>
+
+  <!-- Floating Controls Container (Top Right) -->
+  <div class="controls-fade absolute top-4 right-4 z-50 flex items-center gap-2.5">
+    <!-- Auto-Rotate Toggle Button -->
+    <button 
+      id="rotateBtn" 
+      onclick="toggleAutoRotate()" 
+      class="floating-cast flex items-center gap-2 px-3.5 py-2.5 rounded-full text-white font-bold text-sm tracking-wide border border-white/25 group cursor-pointer active:scale-95"
+      title="تدوير الشاشة تلقائياً (أفقي / رأسي)"
+    >
+      <svg id="rotateIcon" class="w-5 h-5 fill-current transition-transform duration-500 group-hover:rotate-180 text-emerald-400" viewBox="0 0 24 24">
+        <path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.53-1.67 1.02-2.47zM6.09 13H4.07c.17 1.39.73 2.73 1.63 3.89l1.41-1.42c-.49-.8-.88-1.6-1.02-2.47zm10.8 2.47c.49-.8.88-1.6 1.02-2.47h2.02c-.17 1.39-.73 2.73-1.63 3.89l-1.41-1.42zm1.02-4.47c-.14-.87-.53-1.67-1.02-2.47l1.41-1.42c.9 1.16 1.46 2.5 1.63 3.89h-2.02zM12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+      </svg>
+      <span class="text-xs sm:text-sm drop-shadow-sm font-semibold hidden sm:inline" id="rotateText">تدوير تلقائي</span>
+    </button>
+
+    <!-- Floating Screen Mirroring (Cast / AirPlay) Button -->
+    <button 
+      id="castBtn" 
+      onclick="triggerScreenMirroring()" 
+      class="floating-cast flex items-center gap-2 px-3.5 py-2.5 rounded-full text-white font-bold text-sm tracking-wide border border-white/25 group cursor-pointer active:scale-95"
+      title="انعكاس الشاشة على التلفاز (Cast / AirPlay)"
+    >
+      <!-- Screen Cast / AirPlay Icon -->
+      <svg class="w-5 h-5 fill-current transition-transform duration-300 group-hover:scale-110 text-sky-400" viewBox="0 0 24 24">
+        <path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.92-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+      </svg>
+      <span class="text-xs sm:text-sm drop-shadow-sm font-semibold hidden sm:inline">انعكاس الشاشة</span>
+    </button>
+  </div>
+
+  <!-- Minimal Buffering Spinner (Only shows when loading) -->
+  <div id="loader" class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] pointer-events-none z-30 transition-opacity duration-300">
+    <div class="w-12 h-12 border-3 border-sky-400/20 border-t-sky-400 rounded-full animate-spin"></div>
+  </div>
+
+  <script>
+    // Hidden Internal Stream Endpoint
+    const STREAM_URL = 'https://b1.rhomyrhomyy.workers.dev/stream';
+
+    const video = document.getElementById('videoPlayer');
+    const loader = document.getElementById('loader');
+    let hls = null;
+    let audioUnlocked = false;
+
+    // Direct Unmuted Audio Settings
+    video.muted = false;
+    video.defaultMuted = false;
+    video.volume = 1.0;
+
+    // Silent Audio Enabler (triggers without any button)
+    function activateAudioDirectly() {
+      video.muted = false;
+      video.volume = 1.0;
+
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') {
+            ctx.resume();
+          }
+        }
+      } catch (e) {}
+
+      const promise = video.play();
+      if (promise !== undefined) {
+        promise.then(() => {
+          audioUnlocked = true;
+          removeListeners();
+        }).catch(() => {});
+      }
+    }
+
+    const triggerEvents = [
+      'pointerdown', 'touchstart', 'touchend', 'mousedown', 
+      'mouseup', 'keydown', 'wheel', 'scroll', 'mousemove', 'focus'
+    ];
+
+    function handleFirstInteraction() {
+      if (!audioUnlocked) {
+        activateAudioDirectly();
+      }
+    }
+
+    function addListeners() {
+      triggerEvents.forEach(evt => {
+        window.addEventListener(evt, handleFirstInteraction, { passive: true, capture: true });
+      });
+    }
+
+    function removeListeners() {
+      triggerEvents.forEach(evt => {
+        window.removeEventListener(evt, handleFirstInteraction, { capture: true });
+      });
+    }
+
+    addListeners();
+
+    // Automatic Stream Initializer
+    function startDirectPlayback() {
+      loader.style.display = 'flex';
+      video.muted = false;
+      video.volume = 1.0;
+
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 30,
+          manifestLoadingTimeOut: 15000,
+          manifestLoadingMaxRetry: 5
+        });
+
+        hls.loadSource(STREAM_URL);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          attemptDirectAudioPlay();
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hls.recoverMediaError();
+                break;
+              default:
+                fallbackDirectPlay();
+                break;
+            }
+          }
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = STREAM_URL;
+        video.addEventListener('loadedmetadata', () => {
+          attemptDirectAudioPlay();
+        });
+      } else {
+        fallbackDirectPlay();
+      }
+    }
+
+    function attemptDirectAudioPlay() {
+      video.muted = false;
+      video.volume = 1.0;
+      
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          // Direct audio playback succeeded without touching anything!
+          audioUnlocked = true;
+          loader.style.display = 'none';
+          removeListeners();
+        }).catch(() => {
+          // If the browser enforces initial silence, start playing immediately,
+          // and seamlessly unmute on the first subtle movement/scroll without any UI button.
+          video.muted = true;
+          video.play().then(() => {
+            loader.style.display = 'none';
+            // Attempt to restore sound immediately after a slight tick
+            setTimeout(() => {
+              video.muted = false;
+              video.play().then(() => {
+                audioUnlocked = true;
+              }).catch(() => {
+                video.muted = true;
+                video.play().catch(() => {});
+              });
+            }, 300);
+          }).catch(() => {
+            loader.style.display = 'none';
+          });
+        });
+      }
+    }
+
+    function fallbackDirectPlay() {
+      video.src = STREAM_URL;
+      video.load();
+      attemptDirectAudioPlay();
+    }
+
+    let isForcedLandscape = false;
+
+    // Toggle Landscape / Portrait Mode dynamically
+    async function toggleAutoRotate() {
+      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+      // 1. Try Screen Orientation API lock
+      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        try {
+          if (!isForcedLandscape) {
+            if (!document.fullscreenElement) {
+              await document.documentElement.requestFullscreen().catch(() => {});
+            }
+            await screen.orientation.lock('landscape');
+            isForcedLandscape = true;
+            updateRotateButtonState();
+            return;
+          } else {
+            await screen.orientation.unlock();
+            isForcedLandscape = false;
+            updateRotateButtonState();
+            return;
+          }
+        } catch (err) {
+          // Fallback to CSS forced rotation if orientation lock is denied or blocked
+        }
+      }
+
+      // 2. CSS Virtual Rotation (Works on iOS Safari & All browsers even with system orientation lock on)
+      isForcedLandscape = !isForcedLandscape;
+      if (isForcedLandscape && window.innerHeight > window.innerWidth) {
+        video.classList.add('force-landscape');
+      } else {
+        video.classList.remove('force-landscape');
+        isForcedLandscape = false;
+      }
+      updateRotateButtonState();
+    }
+
+    function updateRotateButtonState() {
+      const icon = document.getElementById('rotateIcon');
+      const text = document.getElementById('rotateText');
+      if (isForcedLandscape) {
+        icon.classList.add('rotate-90', 'text-amber-400');
+        icon.classList.remove('text-emerald-400');
+        if (text) text.innerText = 'الوضع الرأسي';
+      } else {
+        icon.classList.remove('rotate-90', 'text-amber-400');
+        icon.classList.add('text-emerald-400');
+        if (text) text.innerText = 'تدوير تلقائي';
+      }
+    }
+
+    // Auto-detect phone hardware orientation changes
+    function handleOrientationChange() {
+      if (window.innerWidth > window.innerHeight) {
+        // Physical device is already in landscape -> clear forced CSS rotation
+        video.classList.remove('force-landscape');
+        isForcedLandscape = false;
+        updateRotateButtonState();
+      }
+    }
+
+    window.addEventListener('resize', handleOrientationChange);
+    if (screen.orientation) {
+      screen.orientation.addEventListener('change', handleOrientationChange);
+    } else {
+      window.addEventListener('orientationchange', handleOrientationChange);
+    }
+
+    let areControlsVisible = true;
+    let hideControlsTimer = null;
+    let lastTapTime = 0;
+
+    function showControls(autoHideDelay = 4000) {
+      document.body.classList.remove('hide-controls');
+      areControlsVisible = true;
+      clearTimeout(hideControlsTimer);
+      if (autoHideDelay > 0) {
+        hideControlsTimer = setTimeout(() => {
+          hideControls();
+        }, autoHideDelay);
+      }
+    }
+
+    function hideControls() {
+      document.body.classList.add('hide-controls');
+      areControlsVisible = false;
+      clearTimeout(hideControlsTimer);
+    }
+
+    function toggleControls(e) {
+      // Don't toggle when clicking directly inside the buttons
+      if (e && e.target && e.target.closest && e.target.closest('.controls-fade')) {
+        return;
+      }
+      if (areControlsVisible) {
+        hideControls();
+      } else {
+        showControls(4000);
+      }
+    }
+
+    // Toggle on screen click / tap
+    video.addEventListener('click', (e) => {
+      const currentTime = new Date().getTime();
+      const tapInterval = currentTime - lastTapTime;
+
+      // Handle double click/tap for fullscreen
+      if (tapInterval < 300 && tapInterval > 0) {
+        toggleFullscreen();
+        e.preventDefault();
+      } else {
+        toggleControls(e);
+      }
+      lastTapTime = currentTime;
+    });
+
+    async function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        try {
+          await document.documentElement.requestFullscreen();
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+          }
+        } catch (e) {}
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Start with auto-hide timer after page loads
+    window.addEventListener('load', () => {
+      showControls(3500);
+    });
+
+    video.addEventListener('playing', () => {
+      loader.style.display = 'none';
+      showControls(3000);
+      // Auto rotate to landscape if opened on mobile in portrait
+      if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && window.innerHeight > window.innerWidth && !isForcedLandscape) {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      }
+    });
+
+    video.addEventListener('waiting', () => {
+      loader.style.display = 'flex';
+    });
+
+    // Screen Mirroring & Cast Handler
+    async function triggerScreenMirroring() {
+      const toast = document.getElementById('castToast');
+      const toastMsg = document.getElementById('castToastMsg');
+      
+      const showToast = (msg, duration = 3500) => {
+        toastMsg.innerText = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+          toast.classList.remove('opacity-100', 'translate-y-0');
+        }, duration);
+      };
+
+      // 1. Apple AirPlay Support (iOS / Safari / Mac)
+      if (video.webkitShowPlaybackTargetPicker) {
+        try {
+          video.webkitShowPlaybackTargetPicker();
+          return;
+        } catch (err) {
+          console.log('AirPlay Picker:', err);
+        }
+      }
+
+      // 2. Google Cast & Remote Playback API (Android / Chrome / Smart TVs)
+      if (video.remote && typeof video.remote.prompt === 'function') {
+        try {
+          await video.remote.prompt();
+          return;
+        } catch (err) {
+          if (err.name !== 'NotFoundError' && err.name !== 'NotAllowedError') {
+            console.log('Remote Playback:', err);
+          }
+        }
+      }
+
+      // 3. Fallback: Request Fullscreen & provide connection hint
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+      showToast('لبدء انعكاس الشاشة: تأكد من اتصال هاتفك والشاشة بنفس شبكة Wi-Fi، أو استخدم خيار "بث الشاشة (Cast/Smart View)" من إعدادات جهازك.');
+    }
+
+    // Start stream immediately on page load
+    window.addEventListener('DOMContentLoaded', startDirectPlayback);
+  </script>
+</body>
+</html>
+```
