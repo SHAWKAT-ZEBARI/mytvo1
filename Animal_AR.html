@@ -65,89 +65,134 @@
       width: 100vh !important;
       height: 100vw !important;
     }
+
+    /* حاوية مخصصة لتثبيت نسبة العرض 16:9 وتثبيت الأزرار داخل إطار الفيديو */
+    .video-frame-16-9 {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: min(100vw, calc(100vh * 1.77778));
+      height: min(100vh, calc(100vw * 0.5625));
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* ضمان ظهور الأزرار فوق طبقة الفيديو في جميع المتصفحات والأنظمة */
+    #floatingQualityContainer, #qualityMenu, #unmuteNotice {
+      z-index: 99999 !important;
+      -webkit-transform: translate3d(0, 0, 0) !important;
+      transform: translate3d(0, 0, 0) !important;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      touch-action: manipulation;
+    }
+
+    /* تنسيقات بديلة مستقلة في حال تم حظر أو بطء تحميل Tailwind CDN */
+    .ctrl-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: rgba(17, 24, 39, 0.88) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      color: #f8fafc !important;
+      border-radius: 12px !important;
+      cursor: pointer !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+      pointer-events: auto !important;
+    }
   </style>
 </head>
 <body class="w-screen h-screen flex items-center justify-center m-0 p-0 text-white bg-black">
 
-  <div id="playerContainer" class="relative w-full h-full flex items-center justify-center overflow-hidden group">
+  <div id="playerContainer" class="relative w-full h-full flex items-center justify-center overflow-hidden group bg-black">
     
-    <!-- عنصر الفيديو الرئيسي -->
-    <video 
-      id="videoElement" 
-      class="w-full h-full object-contain cursor-pointer"
-      playsinline 
-      webkit-playsinline
-      crossorigin="anonymous">
-    </video>
+    <!-- حاوية إطار 16:9 لحفظ الأزرار ومحتوى الفيديو ضمن نفس النطاق -->
+    <div id="videoWrapper" class="video-frame-16-9 flex items-center justify-center overflow-hidden">
+      
+      <!-- عنصر الفيديو الرئيسي -->
+      <video 
+        id="videoElement" 
+        class="w-full h-full object-contain cursor-pointer"
+        playsinline 
+        webkit-playsinline
+        crossorigin="anonymous">
+      </video>
 
-    <!-- مؤشر التحميل المؤقت (Buffering Spinner) -->
-    <div id="bufferingSpinner" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm z-30 transition-opacity duration-300 opacity-0">
-      <div class="relative w-16 h-16">
-        <div class="w-16 h-16 rounded-full border-4 border-sky-500/20 border-t-sky-400 animate-spin"></div>
-        <div class="absolute inset-0 flex items-center justify-center">
-          <svg class="w-6 h-6 text-sky-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      <!-- مؤشر التحميل المؤقت (Buffering Spinner) -->
+      <div id="bufferingSpinner" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm z-30 transition-opacity duration-300 opacity-0">
+        <div class="relative w-16 h-16">
+          <div class="w-16 h-16 rounded-full border-4 border-sky-500/20 border-t-sky-400 animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-6 h-6 text-sky-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="mt-3 text-xs font-semibold tracking-wider text-sky-300 animate-pulse">جاري التحميل بأعلى سرعة...</p>
+      </div>
+
+      <!-- إشعار تشغيل الصوت السريع عند فرض المتصفح لكتم الصوت -->
+      <div id="unmuteNotice" class="hidden absolute top-4 sm:top-6 inset-x-0 mx-auto w-fit z-40 transition-all transform duration-300">
+        <button id="unmuteHeaderBtn" class="flex items-center gap-3 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm rounded-full shadow-2xl shadow-amber-500/30 transform hover:scale-105 active:scale-95 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current animate-bounce" viewBox="0 0 24 24">
+            <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5 9.77l-4-4H3v6h4.5l4 4V4.77l-4 4zM16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
           </svg>
+          <span>انقر هنا لتشغيل الصوت مباشرة 🔊</span>
+        </button>
+      </div>
+
+      <!-- قائمة اختيار الجودة المنبثقة داخل إطار 16:9 -->
+      <div id="qualityMenu" class="hidden absolute bottom-14 left-3 sm:bottom-16 sm:left-4 z-40 w-52 glass-card rounded-xl p-2 shadow-2xl border border-white/10 text-xs">
+        <div class="px-3 py-1.5 font-bold text-slate-400 border-b border-white/10 flex justify-between items-center">
+          <span>جودة الفيديو</span>
+          <span class="text-[10px] text-sky-400 font-mono">Shaka ABR</span>
+        </div>
+        <div id="qualityList" class="mt-1 max-h-48 overflow-y-auto space-y-1">
+          <!-- الخيارات تضاف برمجياً -->
         </div>
       </div>
-      <p class="mt-3 text-xs font-semibold tracking-wider text-sky-300 animate-pulse">جاري التحميل بأعلى سرعة...</p>
-    </div>
 
-    <!-- إشعار تشغيل الصوت السريع عند فرض المتصفح لكتم الصوت -->
-    <div id="unmuteNotice" class="hidden absolute top-6 inset-x-0 mx-auto w-fit z-40 transition-all transform duration-300">
-      <button id="unmuteHeaderBtn" class="flex items-center gap-3 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm rounded-full shadow-2xl shadow-amber-500/30 transform hover:scale-105 active:scale-95 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current animate-bounce" viewBox="0 0 24 24">
-          <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5 9.77l-4-4H3v6h4.5l4 4V4.77l-4 4zM16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-        </svg>
-        <span>انقر هنا لتشغيل الصوت مباشرة 🔊</span>
-      </button>
-    </div>
+      <!-- أزرار التحكم العائمة المدمجة في زاوية شاشة 16:9 مباشرة -->
+      <div id="floatingQualityContainer" class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-50 flex items-center gap-2.5 transition-opacity duration-300 opacity-100" style="opacity: 1;">
+        <!-- زر التشغيل والإيقاف المؤقت -->
+        <button id="playPauseBtn" class="ctrl-btn p-2 sm:px-3 sm:py-2 gap-1.5 shadow-xl active:scale-95" title="تشغيل / إيقاف مؤقت">
+          <svg id="playIcon" class="hidden w-4 h-4 text-sky-400 fill-current" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg id="pauseIcon" class="w-4 h-4 text-sky-400 fill-current" viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+        </button>
 
-    <!-- زر وسط الشاشة للتشغيل السريع إذا توقف المشغل -->
-    <div id="bigPlayBtn" class="hidden absolute inset-0 m-auto w-20 h-20 bg-sky-500/80 hover:bg-sky-400 text-white rounded-full flex items-center justify-center cursor-pointer shadow-2xl backdrop-blur-md transition transform hover:scale-110 active:scale-95 z-30">
-      <svg class="w-10 h-10 translate-x-[-2px] fill-current" viewBox="0 0 24 24">
-        <path d="M8 5v14l11-7z"/>
-      </svg>
-    </div>
+        <!-- زر التلقائي / اختيار الجودة -->
+        <button id="toggleQualityBtn" class="ctrl-btn px-3.5 py-2 text-xs font-bold gap-2 shadow-xl active:scale-95" title="جودة الفيديو">
+          <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span id="currentQualityLabel">تلقائي</span>
+        </button>
 
-    <!-- قائمة اختيار الجودة المنبثقة -->
-    <div id="qualityMenu" class="hidden absolute bottom-16 left-4 sm:left-6 z-40 w-52 glass-card rounded-xl p-2 shadow-2xl border border-white/10 text-xs">
-      <div class="px-3 py-1.5 font-bold text-slate-400 border-b border-white/10 flex justify-between items-center">
-        <span>جودة الفيديو</span>
-        <span class="text-[10px] text-sky-400 font-mono">Shaka ABR</span>
+        <!-- زر تكبير الشاشة (ملء الشاشة) -->
+        <button id="fullscreenBtn" class="ctrl-btn p-2 sm:px-3 sm:py-2 gap-1.5 shadow-xl active:scale-95" title="ملء الشاشة">
+          <svg id="enterFsIcon" class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+          <svg id="exitFsIcon" class="hidden w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- زر قناة تيليجرام -->
+        <a href="https://t.me/shawkatiptv" target="_blank" rel="noopener noreferrer" class="ctrl-btn p-2 sm:px-3 sm:py-2 text-[#229ED9] hover:text-white shadow-xl active:scale-95" title="انضم لقناة تيليجرام">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+        </a>
       </div>
-      <div id="qualityList" class="mt-1 max-h-48 overflow-y-auto space-y-1">
-        <!-- الخيارات تضاف برمجياً -->
-      </div>
-    </div>
 
-    <!-- أزرار التحكم العائمة في الأسفل: الجودة + تكبير الشاشة + تيليجرام -->
-    <div id="floatingQualityContainer" class="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-30 flex items-center gap-2.5 transition-opacity duration-300">
-      <!-- زر التلقائي / اختيار الجودة -->
-      <button id="toggleQualityBtn" class="px-3.5 py-2 rounded-xl glass-card hover:bg-white/20 text-xs font-bold flex items-center gap-2 transition text-slate-100 shadow-xl border border-white/15 active:scale-95" title="جودة الفيديو">
-        <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        <span id="currentQualityLabel">تلقائي</span>
-      </button>
-
-      <!-- زر تكبير الشاشة (ملء الشاشة) -->
-      <button id="fullscreenBtn" class="p-2 sm:px-3 sm:py-2 rounded-xl glass-card hover:bg-white/20 text-slate-100 flex items-center gap-1.5 transition shadow-xl border border-white/15 active:scale-95" title="ملء الشاشة">
-        <svg id="enterFsIcon" class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-        </svg>
-        <svg id="exitFsIcon" class="hidden w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      <!-- زر قناة تيليجرام -->
-      <a href="https://t.me/shawkatiptv" target="_blank" rel="noopener noreferrer" class="p-2 sm:px-3 sm:py-2 rounded-xl glass-card hover:bg-[#229ED9]/20 text-[#229ED9] hover:text-white flex items-center justify-center transition shadow-xl border border-white/15 active:scale-95" title="انضم لقناة تيليجرام">
-        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
-        </svg>
-      </a>
     </div>
   </div>
 
@@ -167,7 +212,9 @@
     var video = document.getElementById('videoElement');
     var container = document.getElementById('playerContainer');
     var spinner = document.getElementById('bufferingSpinner');
-    var bigPlayBtn = document.getElementById('bigPlayBtn');
+    var playPauseBtn = document.getElementById('playPauseBtn');
+    var playIcon = document.getElementById('playIcon');
+    var pauseIcon = document.getElementById('pauseIcon');
     var unmuteNotice = document.getElementById('unmuteNotice');
     var unmuteHeaderBtn = document.getElementById('unmuteHeaderBtn');
     var toggleQualityBtn = document.getElementById('toggleQualityBtn');
@@ -287,15 +334,24 @@
       }
     }
 
-    video.addEventListener('play', function() {
-      bigPlayBtn.classList.add('hidden');
+    function updatePlayPauseIcons() {
+      if (video.paused) {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+      } else {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+      }
+    }
+
+    video.addEventListener('play', updatePlayPauseIcons);
+    video.addEventListener('pause', updatePlayPauseIcons);
+
+    playPauseBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      togglePlay();
     });
 
-    video.addEventListener('pause', function() {
-      bigPlayBtn.classList.remove('hidden');
-    });
-
-    bigPlayBtn.addEventListener('click', togglePlay);
     video.addEventListener('click', togglePlay);
 
     function forceSound() {
@@ -356,15 +412,20 @@
       qualityMenu.classList.toggle('hidden');
     });
 
-    // التعامل مع تكبير وتصغير الشاشة
+    // التعامل مع تكبير وتصغير الشاشة المتوافق مع جميع المتصفحات وهواتف iPhone
     function toggleFullscreen() {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      var isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+      if (!isFullscreen) {
         if (container.requestFullscreen) {
-          container.requestFullscreen();
+          container.requestFullscreen().catch(function() { fallbackVideoFullscreen(); });
         } else if (container.webkitRequestFullscreen) {
           container.webkitRequestFullscreen();
+        } else if (video.webkitEnterFullscreen) {
+          // دعم خاص لأجهزة iPhone (Safari) حيث لا يدعم حاوية الـ div وضع ملء الشاشة
+          video.webkitEnterFullscreen();
         }
-        // محاولة قلب الهاتف تلقائياً للوضع العرضي عند ملء الشاشة
+
         if (screen.orientation && screen.orientation.lock && window.innerWidth < 768) {
           screen.orientation.lock('landscape').catch(function() {});
         }
@@ -377,6 +438,12 @@
         if (screen.orientation && screen.orientation.unlock) {
           screen.orientation.unlock();
         }
+      }
+    }
+
+    function fallbackVideoFullscreen() {
+      if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
       }
     }
 
@@ -398,20 +465,29 @@
 
     document.addEventListener('fullscreenchange', updateFullscreenIcons);
     document.addEventListener('webkitfullscreenchange', updateFullscreenIcons);
+    video.addEventListener('webkitbeginfullscreen', function() { updateFullscreenIcons(); });
+    video.addEventListener('webkitendfullscreen', function() { updateFullscreenIcons(); });
 
-    // إظهار وإخفاء أزرار التحكم العائمة بسلاسة
+    // إظهار وإخفاء أزرار التحكم العائمة مع ضمان تفاعل اللمس على الهواتف
     function showControls() {
       floatingQualityContainer.style.opacity = '1';
+      floatingQualityContainer.style.pointerEvents = 'auto';
       clearTimeout(controlsTimeout);
       controlsTimeout = setTimeout(function() {
         if (!video.paused && qualityMenu.classList.contains('hidden')) {
           floatingQualityContainer.style.opacity = '0';
+          floatingQualityContainer.style.pointerEvents = 'none';
         }
-      }, 3500);
+      }, 4000);
     }
 
-    container.addEventListener('mousemove', showControls);
-    container.addEventListener('touchstart', showControls, { passive: true });
+    // إظهار الأزرار فور تحميل المشغل
+    showControls();
+
+    // الاستماع لأي لمس أو نقرة على كامل الشاشة لإظهار الأزرار فوراً
+    window.addEventListener('mousemove', showControls);
+    window.addEventListener('touchstart', showControls, { passive: true });
+    window.addEventListener('click', showControls);
 
     document.addEventListener('click', function(e) {
       if (!qualityMenu.contains(e.target) && e.target !== toggleQualityBtn) {
