@@ -146,7 +146,7 @@
       <!-- عنصر الفيديو -->
       <video 
         id="videoElement" 
-        class="w-full h-full video-contain cursor-pointer transition-all duration-200"
+        class="w-full h-full video-contain transition-all duration-200"
         playsinline 
         webkit-playsinline
         crossorigin="anonymous">
@@ -194,8 +194,8 @@
       <!-- أزرار التحكم المدمجة -->
       <div id="controlsBar" class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-50 flex items-center gap-2 transition-opacity duration-300 opacity-100">
         
-        <!-- تشغيل / إيقاف مؤقت -->
-        <button id="playPauseBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 shadow-xl" title="تشغيل / إيقاف مؤقت (Space)">
+        <!-- تشغيل / إيقاف مؤقت (الزر المخصص الحصري للتحكم بالتشغيل والإيقاف) -->
+        <button id="playPauseBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 shadow-xl" title="تشغيل / إيقاف مؤقت">
           <svg id="playIcon" class="hidden w-4 h-4 text-sky-400 fill-current" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
           </svg>
@@ -214,7 +214,7 @@
         </button>
 
         <!-- زر ملء الشاشة بالعرض في Google Chrome -->
-        <button id="fullscreenBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 gap-1.5 shadow-xl text-sky-400 font-bold text-xs" title="ملء الشاشة بالعرض في Chrome (F)">
+        <button id="fullscreenBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 gap-1.5 shadow-xl text-sky-400 font-bold text-xs" title="ملء الشاشة بالعرض في Chrome">
           <!-- أيقونة التكبير -->
           <svg id="enterFsIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -348,7 +348,7 @@
           playPromise.then(function() {
             unmuteNotice.classList.add('hidden');
           }).catch(function() {
-            // سياسة كروم تمنع الصوت التلقائي أحياناً قبل أول نقرة
+            // سياسة كروم تمنع الصوت التلقائي أحياناً قبل أول تفاعل
             video.muted = true;
             video.play();
             unmuteNotice.classList.remove('hidden');
@@ -400,13 +400,17 @@
     video.addEventListener('play', updatePlayPauseIcons);
     video.addEventListener('pause', updatePlayPauseIcons);
 
+    // التشغيل والإيقاف محصور فقط بزر التحكم المخصص
     playPauseBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       togglePlay();
+      showControls();
     });
 
-    video.addEventListener('click', function() {
-      togglePlay();
+    // النقر على شاشة الفيديو لا يوقف ولا يشغل البث إطلاقاً (فقط يظهر شريط التحكم)
+    video.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showControls();
     });
 
     unmuteHeaderBtn.addEventListener('click', function(e) {
@@ -461,19 +465,7 @@
       qualityMenu.classList.toggle('hidden');
     });
 
-    /**
-     * تشغيل ملء الشاشة بالعرض في Google Chrome:
-     * 1. فحص دعم Fullscreen API (webkitRequestFullscreen أو requestFullscreen).
-     * 2. طلب تفعيل ملء الشاشة على حاوية المشغل container.
-     * 3. في Google Chrome على أندرويد: قفل الشاشة بالعرض عبر screen.orientation.lock('landscape').
-     * 4. توفير وضع التدوير الإجباري 90 درجة بالـ CSS كحل بديل فوري إذا رفض النظام أو المتصفح القفل.
-     */
     async function enterChromeLandscapeFullscreen() {
-      var isNativeSupported = document.fullscreenEnabled || 
-                              document.webkitFullscreenEnabled || 
-                              container.requestFullscreen || 
-                              container.webkitRequestFullscreen;
-
       try {
         if (container.requestFullscreen) {
           await container.requestFullscreen({ navigationUI: "hide" });
@@ -483,7 +475,6 @@
           throw new Error("Fullscreen API not available");
         }
 
-        // قفل الاتجاه بالعرض في Google Chrome فور دخول ملء الشاشة
         if (screen.orientation && screen.orientation.lock) {
           try {
             await screen.orientation.lock('landscape');
@@ -493,26 +484,22 @@
         }
         showToast("تم ملء الشاشة بالعرض في Chrome 🔄");
       } catch (err) {
-        // البديل في حال كان المتصفح داخل WebView أو منع خاصية fullscreen: تطبيق التدوير عبر CSS
         applyCssLandscapeFallback(true);
       }
     }
 
     async function exitChromeLandscapeFullscreen() {
-      // إذا كان البديل نشطاً
       if (isCssFallbackActive) {
         applyCssLandscapeFallback(false);
         return;
       }
 
-      // إلغاء قفل الاتجاه
       if (screen.orientation && screen.orientation.unlock) {
         try {
           screen.orientation.unlock();
         } catch (e) {}
       }
 
-      // الخروج من ملء الشاشة الرسمي
       try {
         if (document.exitFullscreen) {
           await document.exitFullscreen();
@@ -522,7 +509,6 @@
       } catch (e) {}
     }
 
-    // تفعيل التدوير الإجباري بالـ CSS لشاشات الهواتف الرأسية
     function applyCssLandscapeFallback(enable) {
       isCssFallbackActive = enable;
       if (enable) {
@@ -555,7 +541,6 @@
       if (inFs) {
         enterFsIcon.classList.add('hidden');
         exitFsIcon.classList.remove('hidden');
-        // قفل الاتجاه بالعرض مجدداً للتأكيد في Chrome
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock('landscape').catch(function(){});
         }
@@ -578,26 +563,21 @@
       toggleFullscreen();
     });
 
-    // النقر المزدوج على الفيديو لملء الشاشة بالعرض
+    // النقر المزدوج على الفيديو مخصص فقط لملء الشاشة دون التأثير على التشغيل
     video.addEventListener('dblclick', function(e) {
       e.preventDefault();
       toggleFullscreen();
     });
 
-    // زر الرجوع في الهاتف لإلغاء ملء الشاشة إذا كان عبر وضع CSS
     window.addEventListener('popstate', function() {
       if (isCssFallbackActive) {
         applyCssLandscapeFallback(false);
       }
     });
 
-    // اختصارات لوحة المفاتيح
     window.addEventListener('keydown', function(e) {
       if (e.key === 'f' || e.key === 'F' || e.key === 'ب') {
         toggleFullscreen();
-      } else if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        togglePlay();
       } else if (e.key === 'm' || e.key === 'M' || e.key === 'ة') {
         video.muted = !video.muted;
       }
