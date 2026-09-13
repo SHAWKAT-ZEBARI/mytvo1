@@ -1,7 +1,9 @@
+```html
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="referrer" content="no-referrer" />
   <title>مشغل البث الاحترافي | Ultra Live Stream</title>
@@ -22,51 +24,32 @@
       font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      box-sizing: border-box;
     }
-    body {
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
       background-color: #030712;
       overflow: hidden;
     }
-    /* إخفاء شريط التمرير */
+
+    /* إخفاء شريط التمرير بالكامل */
     ::-webkit-scrollbar {
       display: none;
     }
-    /* تأثير الضبابية للتحكم السفلي */
-    .glass-panel {
-      background: linear-gradient(180deg, rgba(3, 7, 18, 0) 0%, rgba(3, 7, 18, 0.85) 45%, rgba(3, 7, 18, 0.98) 100%);
-      backdrop-filter: blur(12px);
-    }
+
+    /* كروت التحكم بتأثير الزجاج الاحترافي */
     .glass-card {
-      background: rgba(17, 24, 39, 0.85);
+      background: rgba(17, 24, 39, 0.88);
       backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    /* منزلق الصوت المخصص */
-    input[type=range] {
-      -webkit-appearance: none;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 9999px;
-      height: 4px;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 14px;
-      width: 14px;
-      border-radius: 50%;
-      background: #38bdf8;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    /* أنماط تدوير الشاشة برمجياً */
-    .rotate-90-mode {
-      transform: rotate(90deg) !important;
-      transform-origin: center center !important;
-      width: 100vh !important;
-      height: 100vw !important;
-    }
-
-    /* حاوية مخصصة لتثبيت نسبة العرض 16:9 وتثبيت الأزرار داخل إطار الفيديو */
+    /* حاوية مخصصة لتثبيت نسبة العرض 16:9 في الوضع العادي */
     .video-frame-16-9 {
       position: relative;
       aspect-ratio: 16 / 9;
@@ -74,10 +57,66 @@
       height: min(100vh, calc(100vw * 0.5625));
       max-width: 100%;
       max-height: 100%;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* ضمان ظهور الأزرار فوق طبقة الفيديو في جميع المتصفحات والأنظمة */
-    #floatingQualityContainer, #qualityMenu, #unmuteNotice {
+    /* وضع ملء الشاشة النقي (Clean In-Window Fullscreen) */
+    /* هذا الوضع يملأ الشاشة 100% دون تفعيل رسالة المتصفح المزعجة "للخروج اضغط Esc" */
+    .clean-fullscreen-mode {
+      position: fixed !important;
+      inset: 0 !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      z-index: 2147483647 !important;
+      background: #000000 !important;
+      border-radius: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .clean-fullscreen-mode .video-frame-16-9 {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      aspect-ratio: unset !important;
+    }
+
+    /* وضع التدوير الأفقي الإجباري للشاشات الرأسية (Forced Landscape Fullscreen) */
+    .forced-landscape-mode {
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      width: 100vh !important;
+      height: 100vw !important;
+      max-width: 100vh !important;
+      max-height: 100vw !important;
+      transform: translate(-50%, -50%) rotate(90deg) !important;
+      transform-origin: center center !important;
+      z-index: 2147483647 !important;
+      background: #000000 !important;
+      border-radius: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .forced-landscape-mode .video-frame-16-9 {
+      width: 100vh !important;
+      height: 100vw !important;
+      max-width: 100vh !important;
+      max-height: 100vw !important;
+      aspect-ratio: unset !important;
+    }
+
+    /* ضمان ظهور الأزرار فوق طبقة الفيديو */
+    #floatingQualityContainer, #qualityMenu, #unmuteNotice, #toastNotification {
       z-index: 99999 !important;
       -webkit-transform: translate3d(0, 0, 0) !important;
       transform: translate3d(0, 0, 0) !important;
@@ -86,13 +125,13 @@
       touch-action: manipulation;
     }
 
-    /* تنسيقات بديلة مستقلة في حال تم حظر أو بطء تحميل Tailwind CDN */
+    /* زر التحكم المستقل */
     .ctrl-btn {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      background: rgba(17, 24, 39, 0.88) !important;
-      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      background: rgba(17, 24, 39, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
       backdrop-filter: blur(16px) !important;
       -webkit-backdrop-filter: blur(16px) !important;
       color: #f8fafc !important;
@@ -101,17 +140,29 @@
       user-select: none !important;
       -webkit-user-select: none !important;
       pointer-events: auto !important;
+      transition: all 0.15s ease-in-out !important;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(30, 41, 59, 0.95) !important;
+      border-color: rgba(56, 189, 248, 0.5) !important;
+      transform: translateY(-1px);
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.95) !important;
     }
   </style>
 </head>
-<body class="w-screen h-screen flex items-center justify-center m-0 p-0 text-white bg-black">
+<body class="w-screen h-screen flex items-center justify-center m-0 p-0 text-white bg-black select-none">
 
+  <!-- الحاوية الرئيسية للمشغل -->
   <div id="playerContainer" class="relative w-full h-full flex items-center justify-center overflow-hidden group bg-black">
     
-    <!-- حاوية إطار 16:9 لحفظ الأزرار ومحتوى الفيديو ضمن نفس النطاق -->
+    <!-- حاوية إطار الفيديو -->
     <div id="videoWrapper" class="video-frame-16-9 flex items-center justify-center overflow-hidden">
       
-      <!-- عنصر الفيديو الرئيسي -->
+      <!-- عنصر الفيديو -->
       <video 
         id="videoElement" 
         class="w-full h-full object-contain cursor-pointer"
@@ -120,7 +171,7 @@
         crossorigin="anonymous">
       </video>
 
-      <!-- مؤشر التحميل المؤقت (Buffering Spinner) -->
+      <!-- مؤشر التحميل والتخزين المؤقت (Buffering Spinner) -->
       <div id="bufferingSpinner" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm z-30 transition-opacity duration-300 opacity-0">
         <div class="relative w-16 h-16">
           <div class="w-16 h-16 rounded-full border-4 border-sky-500/20 border-t-sky-400 animate-spin"></div>
@@ -133,7 +184,7 @@
         <p class="mt-3 text-xs font-semibold tracking-wider text-sky-300 animate-pulse">جاري التحميل بأعلى سرعة...</p>
       </div>
 
-      <!-- إشعار تشغيل الصوت السريع عند فرض المتصفح لكتم الصوت -->
+      <!-- إشعار تشغيل الصوت التلقائي -->
       <div id="unmuteNotice" class="hidden absolute top-4 sm:top-6 inset-x-0 mx-auto w-fit z-40 transition-all transform duration-300">
         <button id="unmuteHeaderBtn" class="flex items-center gap-3 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm rounded-full shadow-2xl shadow-amber-500/30 transform hover:scale-105 active:scale-95 transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current animate-bounce" viewBox="0 0 24 24">
@@ -143,21 +194,27 @@
         </button>
       </div>
 
-      <!-- قائمة اختيار الجودة المنبثقة داخل إطار 16:9 -->
-      <div id="qualityMenu" class="hidden absolute bottom-14 left-3 sm:bottom-16 sm:left-4 z-40 w-52 glass-card rounded-xl p-2 shadow-2xl border border-white/10 text-xs">
+      <!-- قائمة اختيار الجودة -->
+      <div id="qualityMenu" class="hidden absolute bottom-14 left-3 sm:bottom-16 sm:left-4 z-40 w-56 glass-card rounded-xl p-2.5 shadow-2xl border border-white/10 text-xs">
         <div class="px-3 py-1.5 font-bold text-slate-400 border-b border-white/10 flex justify-between items-center">
-          <span>جودة الفيديو</span>
+          <span>جودة البث</span>
           <span class="text-[10px] text-sky-400 font-mono">Shaka ABR</span>
         </div>
-        <div id="qualityList" class="mt-1 max-h-48 overflow-y-auto space-y-1">
-          <!-- الخيارات تضاف برمجياً -->
+        <div id="qualityList" class="mt-1.5 max-h-48 overflow-y-auto space-y-1">
+          <!-- تضاف الخيارات برمجياً -->
         </div>
       </div>
 
-      <!-- أزرار التحكم العائمة المدمجة في زاوية شاشة 16:9 مباشرة -->
-      <div id="floatingQualityContainer" class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-50 flex items-center gap-2.5 transition-opacity duration-300 opacity-100" style="opacity: 1;">
+      <!-- إشعار عائم لتأكيد وضع العرض بدون مقاطعة الفيديو -->
+      <div id="toastNotification" class="pointer-events-none fixed top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-stone-900/90 border border-sky-500/40 rounded-full text-xs font-semibold text-sky-300 shadow-xl opacity-0 transition-opacity duration-300 z-50">
+        <span id="toastMsg">تم تفعيل ملء الشاشة</span>
+      </div>
+
+      <!-- أزرار التحكم العائمة المدمجة في زاوية الشاشة -->
+      <div id="floatingQualityContainer" class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-50 flex items-center gap-2 transition-opacity duration-300 opacity-100">
+        
         <!-- زر التشغيل والإيقاف المؤقت -->
-        <button id="playPauseBtn" class="ctrl-btn p-2 sm:px-3 sm:py-2 gap-1.5 shadow-xl active:scale-95" title="تشغيل / إيقاف مؤقت">
+        <button id="playPauseBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 gap-1.5 shadow-xl" title="تشغيل / إيقاف مؤقت (مسافة)">
           <svg id="playIcon" class="hidden w-4 h-4 text-sky-400 fill-current" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
           </svg>
@@ -166,8 +223,8 @@
           </svg>
         </button>
 
-        <!-- زر التلقائي / اختيار الجودة -->
-        <button id="toggleQualityBtn" class="ctrl-btn px-3.5 py-2 text-xs font-bold gap-2 shadow-xl active:scale-95" title="جودة الفيديو">
+        <!-- زر الجودة التلقائية واليدوية -->
+        <button id="toggleQualityBtn" class="ctrl-btn px-3 py-2 text-xs font-bold gap-2 shadow-xl" title="جودة الفيديو">
           <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -175,22 +232,25 @@
           <span id="currentQualityLabel">تلقائي</span>
         </button>
 
-        <!-- زر تكبير الشاشة (ملء الشاشة) -->
-        <button id="fullscreenBtn" class="ctrl-btn p-2 sm:px-3 sm:py-2 gap-1.5 shadow-xl active:scale-95" title="ملء الشاشة">
-          <svg id="enterFsIcon" class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- زر ملء الشاشة النظيف (خالي من رسائل المتصفح المزعجة) -->
+        <button id="fullscreenBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 gap-1.5 shadow-xl text-sky-400" title="ملء الشاشة المباشر (F)">
+          <!-- أيقونة التكبير -->
+          <svg id="enterFsIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
           </svg>
-          <svg id="exitFsIcon" class="hidden w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <!-- أيقونة التصغير -->
+          <svg id="exitFsIcon" class="hidden w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         <!-- زر قناة تيليجرام -->
-        <a href="https://t.me/shawkatiptv" target="_blank" rel="noopener noreferrer" class="ctrl-btn p-2 sm:px-3 sm:py-2 text-[#229ED9] hover:text-white shadow-xl active:scale-95" title="انضم لقناة تيليجرام">
+        <a href="https://t.me/shawkatiptv" target="_blank" rel="noopener noreferrer" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 text-[#229ED9] hover:text-white shadow-xl" title="انضم لقناة تيليجرام">
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
           </svg>
         </a>
+
       </div>
 
     </div>
@@ -208,9 +268,10 @@
     var keyId = getUrlParam('key', "807d6b44b0ab6496877be8513313e3ce");
     var key = getUrlParam('key2', "a57d64d5e08284e52555f57b8e68b21c");
 
-    // عناصر واجهة المستخدم المتبقية
+    // عناصر الصفحة
     var video = document.getElementById('videoElement');
     var container = document.getElementById('playerContainer');
+    var videoWrapper = document.getElementById('videoWrapper');
     var spinner = document.getElementById('bufferingSpinner');
     var playPauseBtn = document.getElementById('playPauseBtn');
     var playIcon = document.getElementById('playIcon');
@@ -225,12 +286,27 @@
     var fullscreenBtn = document.getElementById('fullscreenBtn');
     var enterFsIcon = document.getElementById('enterFsIcon');
     var exitFsIcon = document.getElementById('exitFsIcon');
+    var toastNotification = document.getElementById('toastNotification');
+    var toastMsg = document.getElementById('toastMsg');
 
     var player = null;
     var controlsTimeout = null;
+    var isCleanFullscreen = false;
+    var isForcedRotation = false;
+    var toastTimeout = null;
+
+    // عرض تنبيه خفيف وسريع بدون تشويش
+    function showToast(text) {
+      if (!toastNotification || !toastMsg) return;
+      toastMsg.textContent = text;
+      toastNotification.classList.remove('opacity-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(function() {
+        toastNotification.classList.add('opacity-0');
+      }, 2000);
+    }
 
     async function initApp() {
-      // تثبيت Polyfills لضمان التوافق مع كافة المتصفحات
       shaka.polyfill.installAll();
 
       if (!shaka.Player.isBrowserSupported()) {
@@ -240,7 +316,7 @@
 
       player = new shaka.Player(video);
 
-      // إعداد ClearKey DRM وتخصيص البفر لتحقيق أقصى سلاسة بدون تقطيع
+      // إعداد ClearKey DRM وتخصيص البفر
       var clearKeysConfig = {};
       if (keyId && key) {
         clearKeysConfig[keyId] = key;
@@ -251,10 +327,10 @@
           clearKeys: clearKeysConfig
         },
         streaming: {
-          bufferingGoal: 20,          // حجز ذاكرة مسبقة لضمان تشغيل سلس
-          rebufferingGoal: 4,         // استئناف فوري عند ضعف الإنترنت
+          bufferingGoal: 20,
+          rebufferingGoal: 4,
           bufferBehind: 15,
-          lowLatencyMode: true,       // وضع زمن الوصول المنخفض للبثوث المباشرة
+          lowLatencyMode: true,
           retryParameters: {
             maxAttempts: 10,
             baseDelay: 500,
@@ -262,7 +338,7 @@
           }
         },
         abr: {
-          enabled: true,              // تشغيل اختيار الدقة التلقائي الذكي
+          enabled: true,
           defaultBandwidthEstimate: 3000000
         }
       });
@@ -281,10 +357,8 @@
 
       try {
         await player.load(manifestUrl);
-        console.log('تم تحميل البث بنجاح.');
         populateQualityOptions();
 
-        // تشغيل البث والصوت بأعلى صوت
         video.muted = false;
         video.volume = 1.0;
 
@@ -293,7 +367,6 @@
           playPromise.then(function() {
             unmuteNotice.classList.add('hidden');
           }).catch(function() {
-            // كتم الصوت مؤقتاً لحين لمس الشاشة بسبب سياسة المتصفح
             video.muted = true;
             video.play();
             unmuteNotice.classList.remove('hidden');
@@ -305,7 +378,6 @@
       }
     }
 
-    // فك حظر الصوت فوراً مع أول لمسة أو نقرة في الصفحة
     function setupGlobalAutoUnmute() {
       var unlockEvents = ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'scroll'];
       
@@ -352,17 +424,22 @@
       togglePlay();
     });
 
-    video.addEventListener('click', togglePlay);
+    video.addEventListener('click', function(e) {
+      // إذا كان النقر نقراً عادياً نقوم بالتبديل
+      togglePlay();
+    });
 
-    function forceSound() {
-      video.muted = false;
-      video.volume = 1.0;
-      unmuteNotice.classList.add('hidden');
-    }
+    // النقر المزدوج على الفيديو لملء الشاشة مباشرة
+    video.addEventListener('dblclick', function(e) {
+      e.preventDefault();
+      toggleCleanFullscreen();
+    });
 
     unmuteHeaderBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      forceSound();
+      video.muted = false;
+      video.volume = 1.0;
+      unmuteNotice.classList.add('hidden');
     });
 
     function populateQualityOptions() {
@@ -379,13 +456,11 @@
       });
 
       uniqueTracks.sort(function(a, b) { return b.height - a.height; });
-
       qualityList.innerHTML = '';
 
-      // خيار تلقائي (Auto ABR)
       var autoBtn = document.createElement('button');
-      autoBtn.className = "w-full text-right px-3 py-1.5 rounded text-white hover:bg-sky-500/20 hover:text-sky-400 font-semibold transition";
-      autoBtn.textContent = "تلقائي (موصى به)";
+      autoBtn.className = "w-full text-right px-3 py-2 rounded-lg text-white hover:bg-sky-500/20 hover:text-sky-400 font-semibold transition flex items-center justify-between";
+      autoBtn.innerHTML = "<span>تلقائي (موصى به)</span><span class='text-[10px] bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded'>Auto</span>";
       autoBtn.onclick = function() {
         player.configure({ abr: { enabled: true } });
         currentQualityLabel.textContent = "تلقائي";
@@ -395,8 +470,8 @@
 
       uniqueTracks.forEach(function(track) {
         var btn = document.createElement('button');
-        btn.className = "w-full text-right px-3 py-1.5 rounded text-slate-300 hover:bg-sky-500/20 hover:text-sky-400 transition";
-        btn.textContent = track.height + "p (" + Math.round(track.bandwidth / 1000) + " kbps)";
+        btn.className = "w-full text-right px-3 py-2 rounded-lg text-slate-300 hover:bg-sky-500/20 hover:text-sky-400 transition flex items-center justify-between";
+        btn.innerHTML = "<span>" + track.height + "p</span><span class='text-[10px] text-slate-400 font-mono'>" + Math.round(track.bandwidth / 1000) + " kbps</span>";
         btn.onclick = function() {
           player.configure({ abr: { enabled: false } });
           player.selectVariantTrack(track, true);
@@ -412,63 +487,126 @@
       qualityMenu.classList.toggle('hidden');
     });
 
-    // التعامل مع تكبير وتصغير الشاشة المتوافق مع جميع المتصفحات وهواتف iPhone
-    function toggleFullscreen() {
-      var isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    /**
+     * تحديث أوضاع العرض والتدوير:
+     * إذا كان الجهاز في الوضع الرأسي (عمودي)، يتم تطبيق التدوير 90 درجة برمجياً لملء الشاشة بالعرض
+     * دون أي حاجة لفتح رسائل المتصفح أو الاعتماد فقط على قفل النظام.
+     */
+    function updateFullscreenDisplay() {
+      if (!isCleanFullscreen) {
+        container.classList.remove('clean-fullscreen-mode');
+        container.classList.remove('forced-landscape-mode');
+        enterFsIcon.classList.remove('hidden');
+        exitFsIcon.classList.add('hidden');
+        return;
+      }
 
-      if (!isFullscreen) {
-        if (container.requestFullscreen) {
-          container.requestFullscreen().catch(function() { fallbackVideoFullscreen(); });
-        } else if (container.webkitRequestFullscreen) {
-          container.webkitRequestFullscreen();
-        } else if (video.webkitEnterFullscreen) {
-          // دعم خاص لأجهزة iPhone (Safari) حيث لا يدعم حاوية الـ div وضع ملء الشاشة
-          video.webkitEnterFullscreen();
-        }
+      enterFsIcon.classList.add('hidden');
+      exitFsIcon.classList.remove('hidden');
 
-        if (screen.orientation && screen.orientation.lock && window.innerWidth < 768) {
-          screen.orientation.lock('landscape').catch(function() {});
-        }
+      var isPortrait = window.innerHeight > window.innerWidth;
+
+      if (isPortrait || isForcedRotation) {
+        container.classList.remove('clean-fullscreen-mode');
+        container.classList.add('forced-landscape-mode');
       } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
+        container.classList.remove('forced-landscape-mode');
+        container.classList.add('clean-fullscreen-mode');
+      }
+    }
+
+    async function toggleCleanFullscreen() {
+      isCleanFullscreen = !isCleanFullscreen;
+
+      if (isCleanFullscreen) {
+        // محاولة قفل الاتجاه أفقياً عبر نظام المتصفح إذا توفر الدعم
+        if (screen.orientation && screen.orientation.lock) {
+          try {
+            await screen.orientation.lock('landscape');
+          } catch (err) {
+            // في حال عدم توفر دعم النظام يتم التدوير فوراً عبر CSS المحسوب بدقة
+          }
         }
+
+        updateFullscreenDisplay();
+        showToast('ملء الشاشة بالعرض 🔄');
+        window.history.pushState({ fullscreen: true }, '');
+      } else {
+        isForcedRotation = false;
+        updateFullscreenDisplay();
+
         if (screen.orientation && screen.orientation.unlock) {
-          screen.orientation.unlock();
+          try {
+            screen.orientation.unlock();
+          } catch (err) {}
         }
       }
     }
 
-    function fallbackVideoFullscreen() {
-      if (video.webkitEnterFullscreen) {
-        video.webkitEnterFullscreen();
+    // زر التدوير المخصص لقلب الاتجاه يدوياً في أي لحظة
+    function toggleManualRotation() {
+      if (!isCleanFullscreen) {
+        // إذا لم يكن في ملء الشاشة، يدخل ملء الشاشة مع التدوير
+        isCleanFullscreen = true;
+        isForcedRotation = true;
+      } else {
+        isForcedRotation = !isForcedRotation;
       }
+      updateFullscreenDisplay();
+      showToast(isForcedRotation ? 'تم تدوير الشاشة 🔄' : 'الوضع الأصلي');
     }
 
     fullscreenBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      toggleFullscreen();
+      toggleCleanFullscreen();
     });
 
-    function updateFullscreenIcons() {
-      var isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
-      if (isFs) {
-        enterFsIcon.classList.add('hidden');
-        exitFsIcon.classList.remove('hidden');
-      } else {
-        enterFsIcon.classList.remove('hidden');
-        exitFsIcon.classList.add('hidden');
+    // التكيف التلقائي عند قيام المستخدم بتدوير هاتفه يدوياً
+    window.addEventListener('resize', function() {
+      if (isCleanFullscreen) {
+        updateFullscreenDisplay();
       }
-    }
+    });
 
-    document.addEventListener('fullscreenchange', updateFullscreenIcons);
-    document.addEventListener('webkitfullscreenchange', updateFullscreenIcons);
-    video.addEventListener('webkitbeginfullscreen', function() { updateFullscreenIcons(); });
-    video.addEventListener('webkitendfullscreen', function() { updateFullscreenIcons(); });
+    window.addEventListener('orientationchange', function() {
+      setTimeout(function() {
+        if (isCleanFullscreen) {
+          updateFullscreenDisplay();
+        }
+      }, 200);
+    });
 
-    // إظهار وإخفاء أزرار التحكم العائمة مع ضمان تفاعل اللمس على الهواتف
+    // الخروج من ملء الشاشة النظيف عند الضغط على زر الرجوع في الهاتف
+    window.addEventListener('popstate', function() {
+      if (isCleanFullscreen) {
+        isCleanFullscreen = false;
+        isForcedRotation = false;
+        updateFullscreenDisplay();
+        if (screen.orientation && screen.orientation.unlock) {
+          try {
+            screen.orientation.unlock();
+          } catch (e) {}
+        }
+      }
+    });
+
+    // اختصارات لوحة المفاتيح
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isCleanFullscreen) {
+        toggleCleanFullscreen();
+      } else if (e.key === 'f' || e.key === 'F' || e.key === 'ب') {
+        toggleCleanFullscreen();
+      } else if (e.key === 'r' || e.key === 'R' || e.key === 'ق') {
+        toggleManualRotation();
+      } else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === 'm' || e.key === 'M' || e.key === 'ة') {
+        video.muted = !video.muted;
+      }
+    });
+
+    // إظهار وإخفاء أزرار التحكم تلقائياً
     function showControls() {
       floatingQualityContainer.style.opacity = '1';
       floatingQualityContainer.style.pointerEvents = 'auto';
@@ -478,13 +616,11 @@
           floatingQualityContainer.style.opacity = '0';
           floatingQualityContainer.style.pointerEvents = 'none';
         }
-      }, 4000);
+      }, 3500);
     }
 
-    // إظهار الأزرار فور تحميل المشغل
     showControls();
 
-    // الاستماع لأي لمس أو نقرة على كامل الشاشة لإظهار الأزرار فوراً
     window.addEventListener('mousemove', showControls);
     window.addEventListener('touchstart', showControls, { passive: true });
     window.addEventListener('click', showControls);
@@ -495,8 +631,8 @@
       }
     });
 
-    // تشغيل التطبيق عند اكتمال تحميل الصفحة
     document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
+```
