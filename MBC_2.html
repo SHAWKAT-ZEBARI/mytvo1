@@ -1,5 +1,3 @@
-```html
-<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -215,14 +213,6 @@
           <span id="currentQualityLabel">تلقائي</span>
         </button>
 
-        <!-- زر تمدد العرض لإلغاء الحواف السوداء (Aspect Ratio Toggle) -->
-        <button id="toggleFitBtn" class="ctrl-btn px-2.5 py-2 text-xs font-bold gap-1 shadow-xl text-slate-300 hover:text-sky-300" title="تغيير أبعاد العرض (تمدد / قياسي)">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m7-5h4m0 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-          </svg>
-          <span id="fitLabel" class="hidden sm:inline">ملاءمة</span>
-        </button>
-
         <!-- زر ملء الشاشة بالعرض في Google Chrome -->
         <button id="fullscreenBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 gap-1.5 shadow-xl text-sky-400 font-bold text-xs" title="ملء الشاشة بالعرض في Chrome (F)">
           <!-- أيقونة التكبير -->
@@ -278,15 +268,12 @@
     var fullscreenBtn = document.getElementById('fullscreenBtn');
     var enterFsIcon = document.getElementById('enterFsIcon');
     var exitFsIcon = document.getElementById('exitFsIcon');
-    var toggleFitBtn = document.getElementById('toggleFitBtn');
-    var fitLabel = document.getElementById('fitLabel');
     var toastNotification = document.getElementById('toastNotification');
     var toastMsg = document.getElementById('toastMsg');
 
     var player = null;
     var controlsTimeout = null;
     var toastTimeout = null;
-    var isCoverFit = false;
     var isCssFallbackActive = false;
 
     function showToast(text) {
@@ -474,23 +461,6 @@
       qualityMenu.classList.toggle('hidden');
     });
 
-    // تبديل بين وضع التمدد الكامل (Cover) ووضع الحفاظ على النسب (Contain)
-    toggleFitBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      isCoverFit = !isCoverFit;
-      if (isCoverFit) {
-        video.classList.remove('video-contain');
-        video.classList.add('video-cover');
-        fitLabel.textContent = "ملء كامل";
-        showToast("وضع ملء الشاشة الكامل (بدون أشرطة)");
-      } else {
-        video.classList.remove('video-cover');
-        video.classList.add('video-contain');
-        fitLabel.textContent = "ملاءمة";
-        showToast("وضع الملاءمة الطبيعي 16:9");
-      }
-    });
-
     /**
      * تشغيل ملء الشاشة بالعرض في Google Chrome:
      * 1. فحص دعم Fullscreen API (webkitRequestFullscreen أو requestFullscreen).
@@ -661,4 +631,3 @@
   </script>
 </body>
 </html>
-```
