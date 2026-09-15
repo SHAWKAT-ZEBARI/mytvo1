@@ -246,9 +246,9 @@
       return results === null ? fallback : decodeURIComponent(results[1].replace(/\+/g, " "));
     }
 
-    var manifestUrl = getUrlParam('get', "https://shawkat96-zebari.hf.space/channel/mytvo1.m3u8");
-    var keyId = getUrlParam('key', "807d6b44b0ab6496877be8513313e3ce");
-    var key = getUrlParam('key2', "a57d64d5e08284e52555f57b8e68b21c");
+    var manifestUrl = getUrlParam('get', "https://b1.rhomyrhomyy.workers.dev/stream");
+    var keyId = getUrlParam('key', "f446c01f7438ae78bdc808aeec15881e");
+    var key = getUrlParam('key2', "5786d43cd7b2d29d914ba30b220c190e");
 
     // عناصر الصفحة
     var video = document.getElementById('videoElement');
@@ -482,7 +482,7 @@
             console.warn('Orientation lock notice:', lockError);
           }
         }
-        showToast("تم ملء الشاشة بالعرض في Chrome 🔄");
+        showToast("SHAWKAT IPTV");
       } catch (err) {
         applyCssLandscapeFallback(true);
       }
@@ -515,7 +515,7 @@
         container.classList.add('css-landscape-fallback');
         enterFsIcon.classList.add('hidden');
         exitFsIcon.classList.remove('hidden');
-        showToast("تم التدوير بالعرض (وضع CSS) 🔄");
+        showToast("SHAWKAT IPTV");
         window.history.pushState({ fullscreen: true }, '');
       } else {
         container.classList.remove('css-landscape-fallback');
