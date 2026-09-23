@@ -1,0 +1,613 @@
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>مشغل البث الاحترافي | Chrome Landscape Stream</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- محرك Shaka Player -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
+
+  <!-- خط Cairo الأنيق -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #030712;
+      overflow: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* كروت التحكم بتأثير الزجاج الاحترافي */
+    .glass-card {
+      background: rgba(17, 24, 39, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* الحاوية الافتراضية بنسبة 16:9 للوضع العادي */
+    .video-frame-standard {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: min(100vw, calc(100vh * 1.77778));
+      height: min(100vh, calc(100vw * 0.5625));
+      max-width: 100%;
+      max-height: 100%;
+      transition: width 0.2s ease, height 0.2s ease;
+    }
+
+    /* ملء الشاشة الداخلي المخصص (Fallback In-Window Fullscreen) */
+    .css-landscape-fallback {
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      width: 100vh !important;
+      height: 100vw !important;
+      max-width: 100vh !important;
+      max-height: 100vw !important;
+      transform: translate(-50%, -50%) rotate(90deg) !important;
+      transform-origin: center center !important;
+      z-index: 2147483647 !important;
+      background: #000000 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .css-landscape-fallback .video-frame-standard {
+      width: 100vh !important;
+      height: 100vw !important;
+      max-width: 100vh !important;
+      max-height: 100vw !important;
+      aspect-ratio: unset !important;
+    }
+
+    /* عند تفعيل ملء الشاشة الرسمي في Google Chrome */
+    :fullscreen #playerContainer,
+    :-webkit-full-screen #playerContainer {
+      width: 100vw !important;
+      height: 100vh !important;
+      background: #000 !important;
+    }
+
+    :fullscreen .video-frame-standard,
+    :-webkit-full-screen .video-frame-standard {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      aspect-ratio: unset !important;
+    }
+
+    /* وضع التمدد لملء جوانب الشاشة بالكامل */
+    .video-cover {
+      object-fit: cover !important;
+    }
+    .video-contain {
+      object-fit: contain !important;
+    }
+
+    /* أزرار التحكم المستقلة */
+    .ctrl-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: rgba(17, 24, 39, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      color: #f8fafc !important;
+      border-radius: 12px !important;
+      cursor: pointer !important;
+      user-select: none !important;
+      pointer-events: auto !important;
+      transition: all 0.15s ease-in-out !important;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(30, 41, 59, 0.95) !important;
+      border-color: rgba(56, 189, 248, 0.6) !important;
+      transform: translateY(-1px);
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.94) !important;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex items-center justify-center m-0 p-0 text-white bg-black select-none">
+
+  <div id="playerContainer" class="relative w-full h-full flex items-center justify-center overflow-hidden group bg-black">
+    
+    <!-- إطار الفيديو -->
+    <div id="videoWrapper" class="video-frame-standard flex items-center justify-center overflow-hidden">
+      
+      <!-- عنصر الفيديو -->
+      <video 
+        id="videoElement" 
+        class="w-full h-full video-contain transition-all duration-200"
+        playsinline 
+        webkit-playsinline
+        crossorigin="anonymous">
+      </video>
+
+      <!-- مؤشر التحميل والتخزين المؤقت -->
+      <div id="bufferingSpinner" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/45 backdrop-blur-sm z-30 transition-opacity duration-300 opacity-0">
+        <div class="relative w-16 h-16">
+          <div class="w-16 h-16 rounded-full border-4 border-sky-500/20 border-t-sky-400 animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-6 h-6 text-sky-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="mt-3 text-xs font-semibold tracking-wider text-sky-300 animate-pulse">جاري التحميل بأعلى سرعة...</p>
+      </div>
+
+      <!-- إشعار تفعيل الصوت السريع -->
+      <div id="unmuteNotice" class="hidden absolute top-4 sm:top-6 inset-x-0 mx-auto w-fit z-40 transition-all transform duration-300">
+        <button id="unmuteHeaderBtn" class="flex items-center gap-3 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-sm rounded-full shadow-2xl shadow-amber-500/30 transform hover:scale-105 active:scale-95 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current animate-bounce" viewBox="0 0 24 24">
+            <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5 9.77l-4-4H3v6h4.5l4 4V4.77l-4 4zM16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+          </svg>
+          <span>انقر هنا لتشغيل الصوت 🔊</span>
+        </button>
+      </div>
+
+      <!-- قائمة جودة Shaka ABR -->
+      <div id="qualityMenu" class="hidden absolute bottom-16 left-3 sm:bottom-16 sm:left-4 z-40 w-56 glass-card rounded-xl p-2.5 shadow-2xl border border-white/10 text-xs">
+        <div class="px-3 py-1.5 font-bold text-slate-400 border-b border-white/10 flex justify-between items-center">
+          <span>جودة البث</span>
+          <span class="text-[10px] text-sky-400 font-mono">Chrome ABR</span>
+        </div>
+        <div id="qualityList" class="mt-1.5 max-h-48 overflow-y-auto space-y-1">
+          <!-- تضاف الخيارات برمجياً -->
+        </div>
+      </div>
+
+      <!-- إشعار Toast عائم لتوضيح الإجراء للمستخدم -->
+      <div id="toastNotification" class="pointer-events-none fixed top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-stone-900/95 border border-sky-500/40 rounded-full text-xs font-bold text-sky-300 shadow-xl opacity-0 transition-opacity duration-300 z-50">
+        <span id="toastMsg">تم ملء الشاشة بالعرض 🔄</span>
+      </div>
+
+      <!-- أزرار التحكم المدمجة -->
+      <div id="controlsBar" class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-50 flex items-center gap-2 transition-opacity duration-300 opacity-100">
+        
+        <!-- تشغيل / إيقاف مؤقت (الزر المخصص الحصري للتحكم بالتشغيل والإيقاف) -->
+        <button id="playPauseBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 shadow-xl" title="تشغيل / إيقاف مؤقت">
+          <svg id="playIcon" class="hidden w-4 h-4 text-sky-400 fill-current" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg id="pauseIcon" class="w-4 h-4 text-sky-400 fill-current" viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+        </button>
+
+        <!-- زر تغيير الجودة -->
+        <button id="toggleQualityBtn" class="ctrl-btn px-3 py-2 text-xs font-bold gap-1.5 shadow-xl" title="تغيير جودة البث">
+          <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span id="currentQualityLabel">تلقائي</span>
+        </button>
+
+        <!-- زر ملء الشاشة بالعرض في Google Chrome -->
+        <button id="fullscreenBtn" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 gap-1.5 shadow-xl text-sky-400 font-bold text-xs" title="ملء الشاشة بالعرض في Chrome">
+          <!-- أيقونة التكبير -->
+          <svg id="enterFsIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+          <!-- أيقونة التصغير -->
+          <svg id="exitFsIcon" class="hidden w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span class="hidden sm:inline">بالعرض</span>
+        </button>
+
+        <!-- زر قناة تيليجرام -->
+        <a href="https://t.me/shawkatiptv" target="_blank" rel="noopener noreferrer" class="ctrl-btn p-2.5 sm:px-3 sm:py-2 text-[#229ED9] hover:text-white shadow-xl" title="قناة تيليجرام">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+        </a>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    // قراءة الروابط والمفاتيح من معلمات الرابط
+    function getUrlParam(name, fallback) {
+      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+      var results = regex.exec(location.search);
+      return results === null ? fallback : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    var manifestUrl = getUrlParam('get', "https://ev-tcn-dxb-cdn.aws.playco.com/live/eds/KSA_Sports1_HD/DASH/KSA_Sports1_HD.mpd");
+    var keyId = getUrlParam('key', "a0723ff5bf2bbbb31dc727e4346b1cc7");
+    var key = getUrlParam('key2', "29951a0a48586258ab168f26b3f58daa");
+
+    // عناصر الصفحة
+    var video = document.getElementById('videoElement');
+    var container = document.getElementById('playerContainer');
+    var videoWrapper = document.getElementById('videoWrapper');
+    var spinner = document.getElementById('bufferingSpinner');
+    var playPauseBtn = document.getElementById('playPauseBtn');
+    var playIcon = document.getElementById('playIcon');
+    var pauseIcon = document.getElementById('pauseIcon');
+    var unmuteNotice = document.getElementById('unmuteNotice');
+    var unmuteHeaderBtn = document.getElementById('unmuteHeaderBtn');
+    var toggleQualityBtn = document.getElementById('toggleQualityBtn');
+    var qualityMenu = document.getElementById('qualityMenu');
+    var qualityList = document.getElementById('qualityList');
+    var currentQualityLabel = document.getElementById('currentQualityLabel');
+    var controlsBar = document.getElementById('controlsBar');
+    var fullscreenBtn = document.getElementById('fullscreenBtn');
+    var enterFsIcon = document.getElementById('enterFsIcon');
+    var exitFsIcon = document.getElementById('exitFsIcon');
+    var toastNotification = document.getElementById('toastNotification');
+    var toastMsg = document.getElementById('toastMsg');
+
+    var player = null;
+    var controlsTimeout = null;
+    var toastTimeout = null;
+    var isCssFallbackActive = false;
+
+    function showToast(text) {
+      if (!toastNotification || !toastMsg) return;
+      toastMsg.textContent = text;
+      toastNotification.classList.remove('opacity-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(function() {
+        toastNotification.classList.add('opacity-0');
+      }, 2500);
+    }
+
+    // تهيئة Shaka Player
+    async function initApp() {
+      shaka.polyfill.installAll();
+
+      if (!shaka.Player.isBrowserSupported()) {
+        console.error('المتصفح لا يدعم مشغل Shaka Player الحديث.');
+        return;
+      }
+
+      player = new shaka.Player(video);
+
+      // إعداد ClearKey DRM وبفر منخفض التأخير
+      var clearKeysConfig = {};
+      if (keyId && key) {
+        clearKeysConfig[keyId] = key;
+      }
+
+      player.configure({
+        drm: {
+          clearKeys: clearKeysConfig
+        },
+        streaming: {
+          bufferingGoal: 20,
+          rebufferingGoal: 3,
+          bufferBehind: 15,
+          lowLatencyMode: true,
+          retryParameters: {
+            maxAttempts: 8,
+            baseDelay: 500,
+            backoffFactor: 1.5
+          }
+        },
+        abr: {
+          enabled: true,
+          defaultBandwidthEstimate: 3500000
+        }
+      });
+
+      player.addEventListener('buffering', function(event) {
+        if (event.buffering) {
+          spinner.classList.remove('opacity-0');
+        } else {
+          spinner.classList.add('opacity-0');
+        }
+      });
+
+      player.addEventListener('error', function(event) {
+        console.error('خطأ في البث:', event.detail);
+      });
+
+      try {
+        await player.load(manifestUrl);
+        populateQualityOptions();
+
+        video.muted = false;
+        video.volume = 1.0;
+
+        var playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.then(function() {
+            unmuteNotice.classList.add('hidden');
+          }).catch(function() {
+            // سياسة كروم تمنع الصوت التلقائي أحياناً قبل أول تفاعل
+            video.muted = true;
+            video.play();
+            unmuteNotice.classList.remove('hidden');
+            setupGlobalAutoUnmute();
+          });
+        }
+      } catch (error) {
+        console.error('تعذر تشغيل الرابط:', error);
+      }
+    }
+
+    // فك كتم الصوت التلقائي عند أول تفاعل
+    function setupGlobalAutoUnmute() {
+      var unlockEvents = ['pointerdown', 'touchstart', 'mousedown', 'keydown'];
+      function unlockAudio() {
+        if (video.muted) {
+          video.muted = false;
+          video.volume = 1.0;
+          unmuteNotice.classList.add('hidden');
+        }
+        unlockEvents.forEach(function(evt) {
+          window.removeEventListener(evt, unlockAudio, true);
+        });
+      }
+      unlockEvents.forEach(function(evt) {
+        window.addEventListener(evt, unlockAudio, { capture: true, once: true });
+      });
+    }
+
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+        unmuteNotice.classList.add('hidden');
+      } else {
+        video.pause();
+      }
+    }
+
+    function updatePlayPauseIcons() {
+      if (video.paused) {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+      } else {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+      }
+    }
+
+    video.addEventListener('play', updatePlayPauseIcons);
+    video.addEventListener('pause', updatePlayPauseIcons);
+
+    // التشغيل والإيقاف محصور فقط بزر التحكم المخصص
+    playPauseBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      togglePlay();
+      showControls();
+    });
+
+    // النقر على شاشة الفيديو لا يوقف ولا يشغل البث إطلاقاً (فقط يظهر شريط التحكم)
+    video.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showControls();
+    });
+
+    unmuteHeaderBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      video.muted = false;
+      video.volume = 1.0;
+      unmuteNotice.classList.add('hidden');
+    });
+
+    function populateQualityOptions() {
+      if (!player) return;
+      var tracks = player.getVariantTracks();
+      var uniqueTracks = [];
+      var seenHeights = new Set();
+
+      tracks.forEach(function(track) {
+        if (track.height && !seenHeights.has(track.height)) {
+          seenHeights.add(track.height);
+          uniqueTracks.push(track);
+        }
+      });
+
+      uniqueTracks.sort(function(a, b) { return b.height - a.height; });
+      qualityList.innerHTML = '';
+
+      var autoBtn = document.createElement('button');
+      autoBtn.className = "w-full text-right px-3 py-2 rounded-lg text-white hover:bg-sky-500/20 hover:text-sky-400 font-semibold transition flex items-center justify-between";
+      autoBtn.innerHTML = "<span>تلقائي (موصى به)</span><span class='text-[10px] bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded'>Auto</span>";
+      autoBtn.onclick = function() {
+        player.configure({ abr: { enabled: true } });
+        currentQualityLabel.textContent = "تلقائي";
+        qualityMenu.classList.add('hidden');
+      };
+      qualityList.appendChild(autoBtn);
+
+      uniqueTracks.forEach(function(track) {
+        var btn = document.createElement('button');
+        btn.className = "w-full text-right px-3 py-2 rounded-lg text-slate-300 hover:bg-sky-500/20 hover:text-sky-400 transition flex items-center justify-between";
+        btn.innerHTML = "<span>" + track.height + "p</span><span class='text-[10px] text-slate-400 font-mono'>" + Math.round(track.bandwidth / 1000) + " kbps</span>";
+        btn.onclick = function() {
+          player.configure({ abr: { enabled: false } });
+          player.selectVariantTrack(track, true);
+          currentQualityLabel.textContent = track.height + "p";
+          qualityMenu.classList.add('hidden');
+        };
+        qualityList.appendChild(btn);
+      });
+    }
+
+    toggleQualityBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      qualityMenu.classList.toggle('hidden');
+    });
+
+    async function enterChromeLandscapeFullscreen() {
+      try {
+        if (container.requestFullscreen) {
+          await container.requestFullscreen({ navigationUI: "hide" });
+        } else if (container.webkitRequestFullscreen) {
+          await container.webkitRequestFullscreen();
+        } else {
+          throw new Error("Fullscreen API not available");
+        }
+
+        if (screen.orientation && screen.orientation.lock) {
+          try {
+            await screen.orientation.lock('landscape');
+          } catch (lockError) {
+            console.warn('Orientation lock notice:', lockError);
+          }
+        }
+        showToast("SHAWKAT IPTV");
+      } catch (err) {
+        applyCssLandscapeFallback(true);
+      }
+    }
+
+    async function exitChromeLandscapeFullscreen() {
+      if (isCssFallbackActive) {
+        applyCssLandscapeFallback(false);
+        return;
+      }
+
+      if (screen.orientation && screen.orientation.unlock) {
+        try {
+          screen.orientation.unlock();
+        } catch (e) {}
+      }
+
+      try {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        }
+      } catch (e) {}
+    }
+
+    function applyCssLandscapeFallback(enable) {
+      isCssFallbackActive = enable;
+      if (enable) {
+        container.classList.add('css-landscape-fallback');
+        enterFsIcon.classList.add('hidden');
+        exitFsIcon.classList.remove('hidden');
+        showToast("SHAWKAT IPTV");
+        window.history.pushState({ fullscreen: true }, '');
+      } else {
+        container.classList.remove('css-landscape-fallback');
+        enterFsIcon.classList.remove('hidden');
+        exitFsIcon.classList.add('hidden');
+      }
+    }
+
+    function isCurrentlyFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement || isCssFallbackActive);
+    }
+
+    function toggleFullscreen() {
+      if (!isCurrentlyFullscreen()) {
+        enterChromeLandscapeFullscreen();
+      } else {
+        exitChromeLandscapeFullscreen();
+      }
+    }
+
+    function onFullscreenChange() {
+      var inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (inFs) {
+        enterFsIcon.classList.add('hidden');
+        exitFsIcon.classList.remove('hidden');
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(function(){});
+        }
+      } else {
+        if (!isCssFallbackActive) {
+          enterFsIcon.classList.remove('hidden');
+          exitFsIcon.classList.add('hidden');
+          if (screen.orientation && screen.orientation.unlock) {
+            try { screen.orientation.unlock(); } catch (e) {}
+          }
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    fullscreenBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleFullscreen();
+    });
+
+    // النقر المزدوج على الفيديو مخصص فقط لملء الشاشة دون التأثير على التشغيل
+    video.addEventListener('dblclick', function(e) {
+      e.preventDefault();
+      toggleFullscreen();
+    });
+
+    window.addEventListener('popstate', function() {
+      if (isCssFallbackActive) {
+        applyCssLandscapeFallback(false);
+      }
+    });
+
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'f' || e.key === 'F' || e.key === 'ب') {
+        toggleFullscreen();
+      } else if (e.key === 'm' || e.key === 'M' || e.key === 'ة') {
+        video.muted = !video.muted;
+      }
+    });
+
+    function showControls() {
+      controlsBar.style.opacity = '1';
+      controlsBar.style.pointerEvents = 'auto';
+      clearTimeout(controlsTimeout);
+      controlsTimeout = setTimeout(function() {
+        if (!video.paused && qualityMenu.classList.contains('hidden')) {
+          controlsBar.style.opacity = '0';
+          controlsBar.style.pointerEvents = 'none';
+        }
+      }, 3500);
+    }
+
+    showControls();
+
+    window.addEventListener('mousemove', showControls);
+    window.addEventListener('touchstart', showControls, { passive: true });
+    window.addEventListener('click', showControls);
+
+    document.addEventListener('click', function(e) {
+      if (!qualityMenu.contains(e.target) && e.target !== toggleQualityBtn) {
+        qualityMenu.classList.add('hidden');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
